@@ -1,8 +1,7 @@
-version: '3'
+version: "3.9"
 
 networks:
-  backend:
-    name: news-tracker-net
+  news-tracker-net:
 
 services:
 
@@ -17,3 +16,16 @@ services:
       - 27017:27017
     networks:
       - news-tracker-net
+
+  news-tracker-core:
+    image: news-tracker-core:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - news-tracker-net
+    depends_on:
+      - mongodb
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_USER: mongo-user
+      MONGO_PASSWORD: password123
