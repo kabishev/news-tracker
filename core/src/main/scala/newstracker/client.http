@@ -1,0 +1,24 @@
+### This file requires the REST Client VS Code extension
+### https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+
+@endpoint = http://localhost:8080/api/articles
+
+### Show all
+GET {{endpoint}}
+
+
+### Show by id
+GET {{endpoint}}/bd451b06-79d1-4422-8473-5c3ce3de4511
+
+### Create
+POST {{endpoint}}
+Content-Type: application/json
+
+{
+  "title": "title #23",
+  "content": "text #2",
+  "createdAt": "2022-03-22",
+  "language": "en"
+}
+
+###

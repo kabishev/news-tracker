@@ -1,0 +1,19 @@
+version: '3'
+
+networks:
+  backend:
+    name: news-tracker-net
+
+services:
+
+  mongodb:
+    image: bitnami/mongodb:latest
+    environment:
+      MONGODB_ROOT_PASSWORD: password123
+      MONGODB_USERNAME: mongo-user
+      MONGODB_PASSWORD: password123
+      MONGODB_DATABASE: news-tracker
+    ports:
+      - 27017:27017
+    networks:
+      - news-tracker-net
