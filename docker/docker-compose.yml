@@ -29,3 +29,14 @@ services:
       MONGO_HOST: mongodb
       MONGO_USER: mongo-user
       MONGO_PASSWORD: password123
+
+  news-tracker-frontend:
+    image: news-tracker-frontend:latest
+    depends_on:
+      - news-tracker-core
+    ports:
+      - "80:3000"
+    networks:
+      - news-tracker-net
+    environment:
+      SERVER_ADDRESS: http://news-tracker-core:8080

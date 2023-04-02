@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -e
+
+function main {
+    pushd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/.."
+
+    docker build --no-cache -t news-tracker-frontend -f docker/dockerfile-frontend .
+
+    popd
+}
+
+main $@
