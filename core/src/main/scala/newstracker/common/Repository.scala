@@ -5,9 +5,6 @@ import cats.implicits._
 import com.mongodb.client.result.UpdateResult
 import mongo4cats.bson.ObjectId
 import mongo4cats.operations.Filter
-import mongo4cats.operations.Update
-
-import java.time.Instant
 
 trait Repository[F[_]] {
   

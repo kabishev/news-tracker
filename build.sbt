@@ -1,9 +1,9 @@
 import com.typesafe.sbt.packager.docker._
-import Dependencies._
 
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / version      := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "io.github.kabishev"
+ThisBuild / scalafixDependencies ++= Dependencies.scalafix
 
 val noPublish = Seq(
   publish         := {},
@@ -31,6 +31,7 @@ val docker = Seq(
 
 lazy val core = project
   .in(file("core"))
+  .dependsOn(kafka)
   .enablePlugins(JavaAppPackaging, DockerPlugin)
   .settings(docker)
   .settings(
@@ -38,7 +39,19 @@ lazy val core = project
     moduleName           := "news-tracker-core",
     Docker / packageName := "news-tracker-core",
     scalacOptions += "-Ymacro-annotations",
-    libraryDependencies ++= Dependencies.core ++ Dependencies.test
+    libraryDependencies ++= Dependencies.core ++ Dependencies.testCore
+  )
+
+lazy val kafka = project
+  .in(file("kafka"))
+  .settings(
+    name       := "news-tracker-kafka",
+    moduleName := "news-tracker-kafka",
+    scalacOptions += "-Ymacro-annotations",
+    resolvers ++= Seq(
+      "io.confluent".at("https://packages.confluent.io/maven/")
+    ),
+    libraryDependencies ++= Dependencies.kafka ++ Dependencies.testKafka
   )
 
 lazy val root = project

@@ -7,8 +7,9 @@ import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.middleware._
 
-import scala.concurrent.duration._
 import newstracker.article.Articles
+
+import scala.concurrent.duration._
 
 final class HttpApi[F[_]: Async] private (private val articles: Articles[F]) {
   private val routes: HttpRoutes[F] = Router(

@@ -4,6 +4,8 @@ import cats.effect.kernel.Sync
 import pureconfig._
 import pureconfig.generic.auto._
 
+import newstracker.kafka.KafkaConfig
+
 object config {
   final case class ApplicationConfig(
       mongo: MongoConfig,
@@ -19,13 +21,6 @@ object config {
   final case class HttpServerConfig(
       host: String,
       port: Int
-  )
-
-  final case class KafkaConfig(
-      host: String,
-      port: Int,
-      group: String,
-      topic: Topic
   )
 
   final case class Topic(article: String)

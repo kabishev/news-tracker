@@ -6,10 +6,10 @@ import io.circe.generic.auto._
 import mongo4cats.circe._
 import mongo4cats.collection.MongoCollection
 import mongo4cats.database.MongoDatabase
-import newstracker.article._
+
+import newstracker.article.{errors, _}
 import newstracker.common.Repository
 
-import newstracker.article.errors
 trait ArticleRepository[F[_]] extends Repository[F] {
   def create(article: CreateArticle): F[ArticleId]
   def getAll: F[List[Article]]

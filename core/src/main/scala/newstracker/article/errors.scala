@@ -1,6 +1,5 @@
 package newstracker.article
 
-import newstracker.article.ArticleId
 import newstracker.ApplicationError._
 
 object errors {

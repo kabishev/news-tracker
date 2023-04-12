@@ -3,19 +3,16 @@ package newstracker.article
 import cats.Monad
 import cats.effect.Async
 import cats.syntax.applicative._
-import cats.syntax.applicativeError._
 import cats.syntax.flatMap._
-import cats.syntax.functor._
-import io.circe.Codec
-import io.circe.Decoder
 import io.circe.generic.auto._
-import newstracker.common.Controller
 import org.http4s.HttpRoutes
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 import sttp.tapir.server.http4s.Http4sServerInterpreter
+
+import newstracker.common.Controller
 
 import java.time.LocalDate
 

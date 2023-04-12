@@ -1,17 +1,16 @@
 package newstracker.common
 
-import cats.MonadError
 import cats.MonadThrow
 import cats.implicits._
 import io.circe.generic.auto._
-import newstracker.ApplicationError
 import org.http4s._
-import org.typelevel.log4cats.Logger
 import sttp.model.StatusCode
 import sttp.tapir.DecodeResult.Error._
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
+
+import newstracker.ApplicationError
 
 final case class ErrorResponse(message: String)
 

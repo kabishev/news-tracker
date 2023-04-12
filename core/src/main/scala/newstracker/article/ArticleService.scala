@@ -1,6 +1,7 @@
 package newstracker.article
 
 import cats.Monad
+
 import newstracker.article.db.ArticleRepository
 import newstracker.common.Service
 

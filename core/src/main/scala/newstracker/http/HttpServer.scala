@@ -2,11 +2,12 @@ package newstracker.http
 
 import cats.effect._
 import com.comcast.ip4s._
-import newstracker.config.HttpServerConfig
 import org.http4s.HttpApp
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server._
 import org.typelevel.log4cats.Logger
+
+import newstracker.config.HttpServerConfig
 
 trait HttpServer[F[_]] {
   def ember(cfg: HttpServerConfig, httpApp: HttpApp[F]): Resource[F, Server]

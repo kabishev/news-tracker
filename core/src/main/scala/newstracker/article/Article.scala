@@ -1,8 +1,5 @@
 package newstracker.article
 
-import io.circe.{Decoder, Encoder}
-import io.estatico.newtype.macros.newtype
-
 import java.time.LocalDate
 
 final case class ArticleId(value: String) extends AnyVal

@@ -1,10 +1,10 @@
 package newstracker.article.db
 
-import io.circe.Codec
 import mongo4cats.bson.ObjectId
 
-import java.time.{Instant, LocalDate}
 import newstracker.article._
+
+import java.time.LocalDate
 
 final case class ArticleEntity(
     _id: ObjectId,
