@@ -103,7 +103,10 @@ object Dependencies {
         Libraries.mongo4cats.core,
         Libraries.mongo4cats.circe
       )
-  lazy val testCore = Seq()
+  lazy val testCore = Seq(
+    Libraries.testing.scalatest,
+    Libraries.testing.scalacheck
+  ).map(_ % Test)
 
   lazy val kafka =
     Libraries.cats.all ++
