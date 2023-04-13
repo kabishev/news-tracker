@@ -2,27 +2,27 @@ import sbt._
 
 object Dependencies {
   object Versions {
-    val circe          = "0.14.5"
-    val http4s         = "0.23.18"
-    val log4cats       = "2.5.0"
-    val pureConfig     = "0.17.2"
-    val fs2            = "3.6.1"
-    val kafka          = "2.5.0"
-    val confluent      = "5.5.0"
-    val newtype        = "0.4.4"
-    val contextApplied = "0.1.4"
-    val mongo4cats     = "0.6.10"
-    val cats           = "2.9.0"
-    val catsEffect     = "3.4.8"
-    val slf4j          = "2.0.7"
-    val scalatest      = "3.2.15"
-    val scalacheck     = "1.17.0"
-    val tapir          = "1.2.12"
+    val circe           = "0.14.5"
+    val http4s          = "0.23.18"
+    val log4cats        = "2.5.0"
+    val pureConfig      = "0.17.2"
+    val fs2             = "3.6.1"
+    val kafka           = "2.5.0"
+    val confluent       = "5.5.0"
+    val newtype         = "0.4.4"
+    val contextApplied  = "0.1.4"
+    val mongo4cats      = "0.6.10"
+    val cats            = "2.9.0"
+    val catsEffect      = "3.4.8"
+    val slf4j           = "2.0.7"
+    val scalatest       = "3.2.15"
+    val scalacheck      = "1.17.0"
+    val tapir           = "1.2.12"
     val organizeImports = "0.6.0"
   }
 
   object Libraries {
-    val newtype = "io.estatico" %% "newtype" % Versions.newtype
+    val newtype         = "io.estatico"          %% "newtype"          % Versions.newtype
     val organizeImports = "com.github.liancheng" %% "organize-imports" % Versions.organizeImports
 
     object cats {
@@ -105,7 +105,8 @@ object Dependencies {
       )
   lazy val testCore = Seq(
     Libraries.testing.scalatest,
-    Libraries.testing.scalacheck
+    Libraries.testing.scalacheck,
+    Libraries.mongo4cats.embedded
   ).map(_ % Test)
 
   lazy val kafka =
