@@ -23,5 +23,5 @@ jobs:
         distribution: 'temurin'
     - name: Run core tests
       run: sbt "project core" test
-    - name: Run kafks tests
+    - name: Run kafka tests
       run: sbt "project kafka" test
