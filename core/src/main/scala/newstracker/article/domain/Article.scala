@@ -1,4 +1,4 @@
-package newstracker.article
+package newstracker.article.domain
 
 import java.time.LocalDate
 

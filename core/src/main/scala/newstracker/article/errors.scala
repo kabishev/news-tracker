@@ -1,6 +1,7 @@
 package newstracker.article
 
 import newstracker.ApplicationError._
+import newstracker.article.domain.ArticleId
 
 object errors {
   case class ArticleDoesNotExist(id: ArticleId) extends NotFound {

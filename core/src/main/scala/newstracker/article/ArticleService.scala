@@ -3,6 +3,7 @@ package newstracker.article
 import cats.Monad
 
 import newstracker.article.db.ArticleRepository
+import newstracker.article.domain._
 import newstracker.common.Service
 
 trait ArticleService[F[_]] extends Service {

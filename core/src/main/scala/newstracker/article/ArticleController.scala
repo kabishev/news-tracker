@@ -12,6 +12,7 @@ import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 
+import newstracker.article.domain._
 import newstracker.common.Controller
 
 import java.time.LocalDate

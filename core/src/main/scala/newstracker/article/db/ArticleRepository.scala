@@ -7,6 +7,7 @@ import mongo4cats.circe._
 import mongo4cats.collection.MongoCollection
 import mongo4cats.database.MongoDatabase
 
+import newstracker.article.domain._
 import newstracker.article.{errors, _}
 import newstracker.common.Repository
 
