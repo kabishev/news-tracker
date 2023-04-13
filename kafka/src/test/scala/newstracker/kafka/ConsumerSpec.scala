@@ -30,7 +30,7 @@ class ConsumerSpec extends AnyWordSpec with Matchers with EmbeddedKafka {
           .makeWithoutKey[IO, Event](config)
           .evalTap(_.subscribeTo(topic))
           .use(_.stream.evalMap(rec => IO.pure(rec.record.value)).take(3).compile.toList)
-          .unsafeRunSync
+          .unsafeRunSync()
 
         receivedMessages must be(List(Event("e1", "event 1"), Event("e2", "event 2"), Event("e3", "event 3")))
       }
