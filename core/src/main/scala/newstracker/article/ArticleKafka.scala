@@ -32,11 +32,11 @@ final private class LiveArticleKafka[F[_]: Async](
   private implicit class CreateArticleEvent(event: newstracker.kafka.createArticle.Event) {
     def toCreateArticle: CreateArticle =
       CreateArticle(
-        title = event.title,
-        content = event.content,
-        createdAt = event.createdAt,
-        language = event.language,
-        tags = Set.empty
+        title = ArticleTitle(event.title),
+        content = ArticleContent(event.content),
+        createdAt = ArticleCreatedAt(event.createdAt),
+        language = ArticleLanguage(event.language),
+        tags = ArticleTags(Set.empty)
       )
   }
 }

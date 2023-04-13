@@ -18,11 +18,11 @@ final case class ArticleEntity(
   def toDomain: Article =
     Article(
       id = ArticleId(_id.toHexString),
-      title = title,
-      content = content,
-      createdAt = createdAt,
-      language = language,
-      tags = tags.getOrElse(Set.empty)
+      title = ArticleTitle(title),
+      content = ArticleContent(content),
+      createdAt = ArticleCreatedAt(createdAt),
+      language = ArticleLanguage(language),
+      tags = ArticleTags(tags.getOrElse(Set.empty))
     )
 }
 
@@ -30,21 +30,21 @@ object ArticleEntity {
 
   def from(article: Article): ArticleEntity =
     ArticleEntity(
-      _id = ObjectId(),
-      title = article.title,
-      content = article.content,
-      createdAt = article.createdAt,
-      language = article.language,
-      tags = Some(article.tags)
+      _id = ObjectId(article.id.value),
+      title = article.title.value,
+      content = article.content.value,
+      createdAt = article.createdAt.value,
+      language = article.language.value,
+      tags = Some(article.tags.value)
     )
 
   def create(article: CreateArticle): ArticleEntity =
     ArticleEntity(
       _id = ObjectId(),
-      title = article.title,
-      content = article.content,
-      createdAt = article.createdAt,
-      language = article.language,
-      tags = Some(article.tags)
+      title = article.title.value,
+      content = article.content.value,
+      createdAt = article.createdAt.value,
+      language = article.language.value,
+      tags = Some(article.tags.value)
     )
 }

@@ -12,6 +12,15 @@ val noPublish = Seq(
   publish / skip  := true
 )
 
+val common = Seq(
+  scalacOptions ++= Seq(
+    "-Ymacro-annotations",
+    "-feature",
+    "-deprecation",
+    "-language:implicitConversions"
+  )
+)
+
 val docker = Seq(
   packageName        := moduleName.value,
   version            := version.value,
@@ -33,21 +42,21 @@ lazy val core = project
   .in(file("core"))
   .dependsOn(kafka)
   .enablePlugins(JavaAppPackaging, DockerPlugin)
+  .settings(common)
   .settings(docker)
   .settings(
     name                 := "news-tracker-core",
     moduleName           := "news-tracker-core",
     Docker / packageName := "news-tracker-core",
-    scalacOptions += "-Ymacro-annotations",
     libraryDependencies ++= Dependencies.core ++ Dependencies.testCore
   )
 
 lazy val kafka = project
   .in(file("kafka"))
+  .settings(common)
   .settings(
     name       := "news-tracker-kafka",
     moduleName := "news-tracker-kafka",
-    scalacOptions += "-Ymacro-annotations",
     resolvers ++= Seq(
       "io.confluent".at("https://packages.confluent.io/maven/")
     ),

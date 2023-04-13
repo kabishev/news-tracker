@@ -20,7 +20,7 @@ import java.time.LocalDate
 final private class ArticleController[F[_]: Async](private val service: ArticleService[F]) extends Controller[F] {
   import ArticleController._
 
-  def routes: HttpRoutes[F] = Http4sServerInterpreter[F].toRoutes(
+  def routes: HttpRoutes[F] = Http4sServerInterpreter[F]().toRoutes(
     List(
       createArticle,
       getAllArticles,
@@ -90,11 +90,11 @@ object ArticleController {
       tags: Option[List[String]]
   ) {
     def toDomain: CreateArticle = CreateArticle(
-      title,
-      content,
-      createdAt,
-      language,
-      tags = tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty)
+      ArticleTitle(title),
+      ArticleContent(content),
+      ArticleCreatedAt(createdAt),
+      ArticleLanguage(language),
+      ArticleTags(tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty))
     )
   }
 
@@ -111,11 +111,11 @@ object ArticleController {
     def toDomain: Article =
       Article(
         ArticleId(id),
-        title,
-        content,
-        createdAt,
-        language,
-        tags = tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty)
+        ArticleTitle(title),
+        ArticleContent(content),
+        ArticleCreatedAt(createdAt),
+        ArticleLanguage(language),
+        ArticleTags(tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty))
       )
   }
 
@@ -131,11 +131,11 @@ object ArticleController {
   object ArticleView {
     def from(article: Article): ArticleView = ArticleView(
       article.id.value,
-      article.title,
-      article.content,
-      article.createdAt,
-      article.language,
-      article.tags
+      article.title.value,
+      article.content.value,
+      article.createdAt.value,
+      article.language.value,
+      article.tags.value
     )
   }
 }
