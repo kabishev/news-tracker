@@ -17,6 +17,7 @@ object Dependencies {
     val slf4j           = "2.0.7"
     val scalatest       = "3.2.15"
     val scalacheck      = "1.17.0"
+    val mokito          = "3.2.15.0"
     val tapir           = "1.2.12"
     val organizeImports = "0.6.0"
   }
@@ -49,7 +50,8 @@ object Dependencies {
       val core    = "io.circe" %% "circe-core"    % Versions.circe
       val parser  = "io.circe" %% "circe-parser"  % Versions.circe
       val generic = "io.circe" %% "circe-generic" % Versions.circe
-      val all     = Seq(core, parser, generic)
+      val refined = "io.circe" %% "circe-refined" % Versions.circe
+      val all     = Seq(core, parser, generic, refined)
     }
 
     object http4s {
@@ -86,6 +88,7 @@ object Dependencies {
     object testing {
       val scalatest     = "org.scalatest"           %% "scalatest"      % Versions.scalatest
       val scalacheck    = "org.scalacheck"          %% "scalacheck"     % Versions.scalacheck
+      val mokito        = "org.scalatestplus"       %% "mockito-4-6"    % Versions.mokito
       val kafkaEmbedded = "io.github.embeddedkafka" %% "embedded-kafka" % Versions.kafka
     }
   }
@@ -106,6 +109,7 @@ object Dependencies {
   lazy val testCore = Seq(
     Libraries.testing.scalatest,
     Libraries.testing.scalacheck,
+    Libraries.testing.mokito,
     Libraries.mongo4cats.embedded
   ).map(_ % Test)
 

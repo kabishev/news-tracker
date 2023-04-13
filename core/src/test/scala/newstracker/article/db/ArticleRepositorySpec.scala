@@ -2,7 +2,6 @@ package newstracker.article.db
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import com.fasterxml.jackson.databind.deser.DataFormatReaders.Match
 import mongo4cats.bson.ObjectId
 import mongo4cats.client.MongoClient
 import mongo4cats.database.MongoDatabase

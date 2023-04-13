@@ -1,13 +1,8 @@
 package newstracker.article
 
 import io.estatico.newtype.macros.newtype
-import io.circe.generic.JsonCodec, io.circe.syntax._
 
 import java.time.LocalDate
-
-abstract class StringType[Str] {
-
-}
 
 package object domain {
   @newtype case class ArticleId(value: String)

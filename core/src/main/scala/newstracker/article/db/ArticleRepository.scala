@@ -8,7 +8,7 @@ import mongo4cats.collection.MongoCollection
 import mongo4cats.database.MongoDatabase
 
 import newstracker.article.domain._
-import newstracker.article.{errors, _}
+import newstracker.article.errors
 import newstracker.common.Repository
 
 trait ArticleRepository[F[_]] extends Repository[F] {
@@ -30,7 +30,7 @@ final private class LiveTransactionRepository[F[_]: Async](private val collectio
 
   override def getAll: F[List[Article]] =
     collection.find
-      .sortByDesc("createdAt")
+      .sortByDesc(Field.CreateAt)
       .all
       .map(_.map(_.toDomain).toList)
 

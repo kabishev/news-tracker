@@ -2,9 +2,9 @@ package newstracker.article
 
 import cats.Monad
 import cats.effect.Async
-import cats.syntax.applicative._
-import cats.syntax.flatMap._
+import eu.timepit.refined.types.string.NonEmptyString
 import io.circe.generic.auto._
+import io.circe.refined._
 import org.http4s.HttpRoutes
 import sttp.model.StatusCode
 import sttp.tapir._
@@ -20,7 +20,7 @@ import java.time.LocalDate
 final private class ArticleController[F[_]: Async](private val service: ArticleService[F]) extends Controller[F] {
   import ArticleController._
 
-  def routes: HttpRoutes[F] = Http4sServerInterpreter[F]().toRoutes(
+  def routes: HttpRoutes[F] = Http4sServerInterpreter[F](Controller.serverOptions[F]).toRoutes(
     List(
       createArticle,
       getAllArticles,
@@ -36,7 +36,7 @@ final private class ArticleController[F[_]: Async](private val service: ArticleS
     Some(s"Invalid representation of an id")
   )
 
-  private val idPath = basePath / path[String].validate(idValidator).map((s: String) => ArticleId(s))(_.value).name("cat-id")
+  private val idPath = basePath / path[String].validate(idValidator).map((s: String) => ArticleId(s))(_.value).name("article-id")
 
   private def getAllArticles = Controller.publicEndpoint.get
     .in(basePath)
@@ -70,10 +70,9 @@ final private class ArticleController[F[_]: Async](private val service: ArticleS
     .in(jsonBody[UpdateArticleRequest])
     .out(statusCode(StatusCode.NoContent))
     .serverLogic { case (id, req) =>
-      Async[F].ensure(req.pure[F])(errors.IdMismatch)(_.id == id.value) >>
-        service
-          .update(req.toDomain)
-          .voidResponse
+      service
+        .update(req.toDomain(id.value))
+        .voidResponse
     }
 }
 
@@ -83,17 +82,17 @@ object ArticleController {
     Monad[F].pure(new ArticleController[F](service))
 
   final case class CreateArticleRequest(
-      title: String,
-      content: String,
+      title: NonEmptyString,
+      content: NonEmptyString,
       createdAt: LocalDate,
-      language: String,
+      language: NonEmptyString,
       tags: Option[List[String]]
   ) {
     def toDomain: CreateArticle = CreateArticle(
-      ArticleTitle(title),
-      ArticleContent(content),
+      ArticleTitle(title.value),
+      ArticleContent(content.value),
       ArticleCreatedAt(createdAt),
-      ArticleLanguage(language),
+      ArticleLanguage(language.value),
       ArticleTags(tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty))
     )
   }
@@ -101,20 +100,19 @@ object ArticleController {
   final case class CreateArticleResponse(id: String)
 
   final case class UpdateArticleRequest(
-      id: String,
-      title: String,
-      content: String,
+      title: NonEmptyString,
+      content: NonEmptyString,
       createdAt: LocalDate,
-      language: String,
+      language: NonEmptyString,
       tags: Option[List[String]]
   ) {
-    def toDomain: Article =
+    def toDomain(id: String): Article =
       Article(
         ArticleId(id),
-        ArticleTitle(title),
-        ArticleContent(content),
+        ArticleTitle(title.value),
+        ArticleContent(content.value),
         ArticleCreatedAt(createdAt),
-        ArticleLanguage(language),
+        ArticleLanguage(language.value),
         ArticleTags(tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty))
       )
   }

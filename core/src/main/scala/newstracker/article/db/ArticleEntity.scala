@@ -2,7 +2,6 @@ package newstracker.article.db
 
 import mongo4cats.bson.ObjectId
 
-import newstracker.article._
 import newstracker.article.domain._
 
 import java.time.LocalDate

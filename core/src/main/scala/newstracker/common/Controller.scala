@@ -1,14 +1,19 @@
 package newstracker.common
 
 import cats.MonadThrow
+import cats.effect._
 import cats.implicits._
 import io.circe.generic.auto._
-import org.http4s._
+import org.http4s.HttpRoutes
 import sttp.model.StatusCode
-import sttp.tapir.DecodeResult.Error._
+import sttp.tapir.DecodeResult.Error.{JsonDecodeException, _}
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
+import sttp.tapir.server.http4s.Http4sServerOptions
+import sttp.tapir.server.interceptor.DecodeFailureContext
+import sttp.tapir.server.interceptor.exception.{ExceptionContext, ExceptionHandler}
+import sttp.tapir.server.model.ValuedEndpointOutput
 
 import newstracker.ApplicationError
 
@@ -49,11 +54,30 @@ object Controller {
     .mkString(", ")
 
   def mapError(error: Throwable): (StatusCode, ErrorResponse) = error match {
-    case e: ApplicationError.Conflict   => (StatusCode.Conflict, ErrorResponse(e.getMessage))
-    case e: ApplicationError.NotFound   => (StatusCode.NotFound, ErrorResponse(e.getMessage))
-    case e: ApplicationError.BadRequest => (StatusCode.BadRequest, ErrorResponse(e.getMessage))
-    case e: ApplicationError.Forbidden  => (StatusCode.Forbidden, ErrorResponse(e.getMessage))
-    case e: JsonDecodeException         => (StatusCode.UnprocessableEntity, ErrorResponse(formatJsonError(e)))
-    case e                              => (StatusCode.InternalServerError, ErrorResponse(e.getMessage))
+    case e: ApplicationError.Conflict      => (StatusCode.Conflict, ErrorResponse(e.getMessage))
+    case e: ApplicationError.NotFound      => (StatusCode.NotFound, ErrorResponse(e.getMessage))
+    case e: ApplicationError.BadRequest    => (StatusCode.BadRequest, ErrorResponse(e.getMessage))
+    case e: ApplicationError.Forbidden     => (StatusCode.Forbidden, ErrorResponse(e.getMessage))
+    case e: ApplicationError.Unprocessable => (StatusCode.UnprocessableEntity, ErrorResponse(e.getMessage))
+    case e: JsonDecodeException            => (StatusCode.UnprocessableEntity, ErrorResponse(formatJsonError(e)))
+    case e                                 => (StatusCode.InternalServerError, ErrorResponse(e.getMessage))
   }
+
+  def serverOptions[F[_]: Sync]: Http4sServerOptions[F] = {
+    val errorEndpointOut = (e: Throwable) => Some(ValuedEndpointOutput(error, Controller.mapError(e)))
+    Http4sServerOptions
+      .customiseInterceptors[F]
+      .exceptionHandler(ExceptionHandler.pure[F]((ctx: ExceptionContext) => errorEndpointOut(ctx.e)))
+      .decodeFailureHandler { (ctx: DecodeFailureContext) =>
+        ctx.failure match {
+          case DecodeResult.Error(_, e) => errorEndpointOut(e)
+          case DecodeResult.InvalidValue(e) =>
+            val messages = e.flatMap(_.customMessage)
+            errorEndpointOut(errors.FailedValidation(messages.mkString(", ")))
+          case _ => None
+        }
+      }
+      .options
+  }
+
 }

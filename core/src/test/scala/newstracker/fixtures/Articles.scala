@@ -10,21 +10,22 @@ object Articles {
   lazy val aid: ArticleId      = ArticleId(ObjectId().toHexString)
   lazy val aid2: ArticleId     = ArticleId(ObjectId().toHexString)
   lazy val title: ArticleTitle = ArticleTitle("title-1")
+  lazy val createdAt           = ArticleCreatedAt(LocalDate.now())
 
   def article(): Article = Article(
     aid,
     title,
     ArticleContent("content"),
-    ArticleCreatedAt(LocalDate.now()),
+    createdAt,
     ArticleLanguage("en"),
     ArticleTags(Set.empty)
   )
 
-  def create(): CreateArticle = CreateArticle(
-    title,
-    ArticleContent("content"),
-    ArticleCreatedAt(LocalDate.now()),
-    ArticleLanguage("en"),
-    ArticleTags(Set.empty)
-  )
+  def create(
+      title: ArticleTitle = title,
+      content: ArticleContent = ArticleContent("content"),
+      createdAt: ArticleCreatedAt = createdAt,
+      language: ArticleLanguage = ArticleLanguage("en"),
+      tags: ArticleTags = ArticleTags(Set.empty)
+  ): CreateArticle = CreateArticle(title, content, createdAt, language, tags)
 }
