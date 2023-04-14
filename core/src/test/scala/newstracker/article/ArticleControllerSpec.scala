@@ -7,8 +7,8 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 
 import newstracker.ControllerSpec
+import newstracker.article.ArticleFixtures
 import newstracker.article.domain._
-import newstracker.fixtures.Articles
 
 import java.time.LocalDate
 
@@ -18,32 +18,34 @@ class ArticleControllerSpec extends ControllerSpec {
     "POST /articles" should {
       "create new article and return 201 on success" in {
         val svc = mock[ArticleService[IO]]
-        when(svc.create(any[CreateArticle])).thenReturn(IO.pure(Articles.aid))
+        when(svc.create(any[CreateArticle])).thenReturn(IO.pure(ArticleFixtures.aid))
 
         val req = request(
           uri"/articles",
           method = Method.POST,
           body = Some(
-            parseJson(s"""{"title": "${Articles.title}","content": "content","createdAt": "${Articles.createdAt}","language": "en"}""")
+            parseJson(
+              s"""{"title": "${ArticleFixtures.title}","content": "content","createdAt": "${ArticleFixtures.createdAt}","language": "en"}"""
+            )
           )
         )
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
-        res mustHaveStatus (Status.Created, Some(s"""{"id":"${Articles.aid}"}"""))
-        verify(svc).create(Articles.create())
+        res mustHaveStatus (Status.Created, Some(s"""{"id":"${ArticleFixtures.aid}"}"""))
+        verify(svc).create(ArticleFixtures.create())
       }
     }
 
     "GET /articles" should {
       "return articles" in {
         val svc = mock[ArticleService[IO]]
-        when(svc.getAll).thenReturn(IO.pure(List(Articles.article())))
+        when(svc.getAll).thenReturn(IO.pure(List(ArticleFixtures.article())))
 
         val req = request(uri"/articles", method = Method.GET)
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
         val expected =
-          s"""[{"id":"${Articles.aid}","title":"${Articles.title}","content":"content","createdAt":"${Articles.createdAt}","language":"en","tags":[]}]"""
+          s"""[{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","tags":[]}]"""
 
         res mustHaveStatus (Status.Ok, Some(expected))
         verify(svc).getAll
@@ -53,16 +55,16 @@ class ArticleControllerSpec extends ControllerSpec {
     "GET /articles/:id" should {
       "return article by id" in {
         val svc = mock[ArticleService[IO]]
-        when(svc.get(any[ArticleId])).thenReturn(IO.pure(Articles.article()))
+        when(svc.get(any[ArticleId])).thenReturn(IO.pure(ArticleFixtures.article()))
         when(svc.isValidId(any[String])).thenReturn(true)
 
-        val req = request(Uri.unsafeFromString(s"/articles/${Articles.aid}"), method = Method.GET)
+        val req = request(Uri.unsafeFromString(s"/articles/${ArticleFixtures.aid}"), method = Method.GET)
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
         val expected =
-          s"""{"id":"${Articles.aid}","title":"${Articles.title}","content":"content","createdAt":"${Articles.createdAt}","language":"en","tags":[]}"""
+          s"""{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","tags":[]}"""
         res mustHaveStatus (Status.Ok, Some(expected))
-        verify(svc).get(Articles.aid)
+        verify(svc).get(ArticleFixtures.aid)
       }
 
       "return error when article id is invalid" in {
@@ -85,16 +87,18 @@ class ArticleControllerSpec extends ControllerSpec {
         when(svc.isValidId(any[String])).thenReturn(true)
 
         val req = request(
-          Uri.unsafeFromString(s"/articles/${Articles.aid}"),
+          Uri.unsafeFromString(s"/articles/${ArticleFixtures.aid}"),
           method = Method.PUT,
           body = Some(
-            parseJson(s"""{"title":"${Articles.title}","content":"content","createdAt":"${Articles.createdAt}","language":"en"}""")
+            parseJson(
+              s"""{"title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en"}"""
+            )
           )
         )
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
         res mustHaveStatus (Status.NoContent, None)
-        verify(svc).update(Articles.article())
+        verify(svc).update(ArticleFixtures.article())
       }
 
       "return 422 when request has validation errors" in {
@@ -102,7 +106,7 @@ class ArticleControllerSpec extends ControllerSpec {
         when(svc.isValidId(any[String])).thenReturn(true)
 
         val req = request(
-          Uri.unsafeFromString(s"/articles/${Articles.aid}"),
+          Uri.unsafeFromString(s"/articles/${ArticleFixtures.aid}"),
           method = Method.PUT,
           body = Some(parseJson(s"""{"title":"","content":""}"""))
         )
@@ -118,20 +122,23 @@ class ArticleControllerSpec extends ControllerSpec {
 
       "return 404 when article does not exist" in {
         val svc = mock[ArticleService[IO]]
-        when(svc.update(any[Article])).thenReturn(IO.raiseError(errors.ArticleDoesNotExist(Articles.aid)))
+        when(svc.update(any[Article])).thenReturn(IO.raiseError(errors.ArticleDoesNotExist(ArticleFixtures.aid)))
         when(svc.isValidId(any[String])).thenReturn(true)
 
         val req = request(
-          Uri.unsafeFromString(s"/articles/${Articles.aid}"),
+          Uri.unsafeFromString(s"/articles/${ArticleFixtures.aid}"),
           method = Method.PUT,
-          body =
-            Some(parseJson(s"""{"title":"${Articles.title}","content":"content","createdAt":"${Articles.createdAt}","language":"en"}"""))
+          body = Some(
+            parseJson(
+              s"""{"title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en"}"""
+            )
+          )
         )
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
-        val resBody = s"""{"message":"Article with id ${Articles.aid} does not exist"}"""
+        val resBody = s"""{"message":"Article with id ${ArticleFixtures.aid} does not exist"}"""
         res mustHaveStatus (Status.NotFound, Some(resBody))
-        verify(svc).update(Articles.article())
+        verify(svc).update(ArticleFixtures.article())
       }
     }
   }

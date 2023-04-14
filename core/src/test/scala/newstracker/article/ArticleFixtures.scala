@@ -1,4 +1,4 @@
-package newstracker.fixtures
+package newstracker.article
 
 import mongo4cats.bson.ObjectId
 
@@ -6,7 +6,7 @@ import newstracker.article.domain._
 
 import java.time.LocalDate
 
-object Articles {
+package object ArticleFixtures {
   lazy val aid: ArticleId      = ArticleId(ObjectId().toHexString)
   lazy val aid2: ArticleId     = ArticleId(ObjectId().toHexString)
   lazy val title: ArticleTitle = ArticleTitle("title-1")
