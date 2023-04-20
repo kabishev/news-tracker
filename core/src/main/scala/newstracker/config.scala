@@ -20,7 +20,7 @@ object config {
 
   final case class HttpServerConfig(
       host: String,
-      port: Int
+      port: Int  
   )
 
   final case class Topic(article: String)

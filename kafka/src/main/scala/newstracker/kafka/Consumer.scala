@@ -15,8 +15,12 @@ object Consumer {
       .withAutoOffsetReset(AutoOffsetReset.Earliest)
       .withBootstrapServers(config.servers)
       .withGroupId(config.groupId)
-      .withEnableAutoCommit(true)
+      .withEnableAutoCommit(true)  // do you always need autocommit=true?
 
     KafkaConsumer.resource(settings)
   }
+
+  // you may make it more universal like that:
+  //  def make[F[_]: Async, K: Deserializer[F, *], V](config: KafkaConfig, autocommit = false)(implicit vdecoder: Decoder[V]): Resource[F, KafkaConsumer[F, K, V]]
+  //  and specify settings for manual commit
 }

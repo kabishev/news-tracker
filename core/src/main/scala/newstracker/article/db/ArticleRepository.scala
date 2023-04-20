@@ -13,9 +13,9 @@ import newstracker.common.Repository
 
 trait ArticleRepository[F[_]] extends Repository[F] {
   def create(article: CreateArticle): F[ArticleId]
-  def getAll: F[List[Article]]
-  def get(id: ArticleId): F[Article]
-  def update(article: Article): F[Unit]
+  def getAll: F[List[Article]] // Stream[F, Article] 
+  def get(id: ArticleId): F[Article] // maybe return F[Option[Article]] and decide later what to do?
+  def update(article: Article): F[Unit] // and here
 }
 
 final private class LiveTransactionRepository[F[_]: Async](private val collection: MongoCollection[F, ArticleEntity])
@@ -28,7 +28,7 @@ final private class LiveTransactionRepository[F[_]: Async](private val collectio
       .as(ArticleId(create._id.toHexString))
   }
 
-  override def getAll: F[List[Article]] =
+  override def getAll: F[List[Article]] = // again, do you need this method?
     collection.find
       .sortByDesc(Field.CreateAt)
       .all

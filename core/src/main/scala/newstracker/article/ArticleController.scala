@@ -31,7 +31,7 @@ final private class ArticleController[F[_]: Async](private val service: ArticleS
 
   private val basePath = "articles"
 
-  val idValidator: Validator[String] = Validator.custom(
+  val idValidator: Validator[String] = Validator.custom( // private
     id => if (service.isValidId(id)) ValidationResult.Valid else ValidationResult.Invalid(s"Invalid representation of an id: $id"),
     Some(s"Invalid representation of an id")
   )
