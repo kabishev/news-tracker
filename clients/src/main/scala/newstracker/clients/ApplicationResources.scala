@@ -32,11 +32,11 @@ object ApplicationResources {
     for {
       db              <- mongoDb(config.mongo)
       backend         <- clientBackend(config.client)
-      acticleProducer <- articleProducer(config.kafka)
+      articleProducer <- articleProducer(config.kafka)
     } yield new ApplicationResources[F] {
       override val httpClientBackend: SttpBackend[F, Any]                        = backend
       override val mongo: MongoDatabase[F]                                       = db
-      override def createArticleProducer: Producer[F, Unit, createArticle.Event] = acticleProducer
+      override def createArticleProducer: Producer[F, Unit, createArticle.Event] = articleProducer
     }
   }
 }

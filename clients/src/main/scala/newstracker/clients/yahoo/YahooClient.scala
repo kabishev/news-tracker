@@ -34,12 +34,12 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Concurrent: Logger]
   override def search(): F[Unit] =
     Stream
       .awakeEvery(config.pollInterval)
-      .evalMap(_ => service.getLast(100))
-      .evalMap { lastStoredUuids =>
-        val storedUuids = lastStoredUuids.toSet
-        getNewArticleIds().map(_.filterNot(storedUuids.contains))
+      .evalMap { _ =>
+        for {
+          newArticleIds <- getNewArticleIds()
+          storedUuids   <- service.getAll.take(100).compile.to(Set)
+        } yield NonEmptyList.fromList(newArticleIds.filterNot(storedUuids.contains))
       }
-      .map(uuids => NonEmptyList.fromList(uuids))
       .unNone
       .evalTap(uuids => service.create(uuids.map(uuid => CreateArticle(uuid, ArticleCreatedAt(LocalDate.now())))))
       .flatMap(uuids => Stream.emits(uuids.toList))
@@ -47,6 +47,7 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Concurrent: Logger]
       .through(createArticleProducer.pipe)
       .compile
       .drain
+      .handleErrorWith(error => Logger[F].error(s"YahooRapidClient search failed: ${error.getMessage}").as(()))
 
   private def getNewArticleIds(): F[List[ArticleUuid]] =
     basicRequest
