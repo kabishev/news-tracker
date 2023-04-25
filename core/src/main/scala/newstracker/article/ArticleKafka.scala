@@ -9,7 +9,7 @@ import newstracker.article.domain._
 
 import scala.concurrent.duration._
 trait ArticleKafka[F[_]] {
-  def stream: fs2.Stream[F, Unit] // why do you need stream here? You may just return F[Unit]
+  def stream: fs2.Stream[F, Unit]
 }
 
 final private class LiveArticleKafka[F[_]: Async](
