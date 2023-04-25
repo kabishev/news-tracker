@@ -12,6 +12,10 @@ final case class ArticleEntity(
     content: String,
     createdAt: LocalDate,
     language: String,
+    authors: String,
+    summary: Option[String],
+    url: Option[String],
+    source: Option[String],
     tags: Option[Set[String]]
 ) {
   def toDomain: Article =
@@ -21,7 +25,11 @@ final case class ArticleEntity(
       content = ArticleContent(content),
       createdAt = ArticleCreatedAt(createdAt),
       language = ArticleLanguage(language),
-      tags = ArticleTags(tags.getOrElse(Set.empty))
+      authors = ArticleAuthors(authors),
+      summary = summary.map(ArticleSummary(_)),
+      url = url.map(ArticleUrl(_)),
+      source = source.map(ArticleSource(_)),
+      tags = tags.map(ArticleTags(_))
     )
 }
 
@@ -34,7 +42,11 @@ object ArticleEntity {
       content = article.content.value,
       createdAt = article.createdAt.value,
       language = article.language.value,
-      tags = Some(article.tags.value)
+      authors = article.authors.value,
+      summary = article.summary.map(_.value),
+      url = article.url.map(_.value),
+      source = article.source.map(_.value),
+      tags = article.tags.map(_.value)
     )
 
   def create(article: CreateArticle): ArticleEntity =
@@ -44,6 +56,10 @@ object ArticleEntity {
       content = article.content.value,
       createdAt = article.createdAt.value,
       language = article.language.value,
-      tags = Some(article.tags.value)
+      authors = article.authors.value,
+      summary = article.summary.map(_.value),
+      url = article.url.map(_.value),
+      source = article.source.map(_.value),
+      tags = article.tags.map(_.value)
     )
 }

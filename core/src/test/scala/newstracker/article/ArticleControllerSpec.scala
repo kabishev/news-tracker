@@ -7,10 +7,7 @@ import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 
 import newstracker.ControllerSpec
-import newstracker.article.ArticleFixtures
 import newstracker.article.domain._
-
-import java.time.LocalDate
 
 class ArticleControllerSpec extends ControllerSpec {
   "A ArticleController" when {
@@ -25,7 +22,7 @@ class ArticleControllerSpec extends ControllerSpec {
           method = Method.POST,
           body = Some(
             parseJson(
-              s"""{"title": "${ArticleFixtures.title}","content": "content","createdAt": "${ArticleFixtures.createdAt}","language": "en"}"""
+              s"""{"title": "${ArticleFixtures.title}","content": "content","createdAt": "${ArticleFixtures.createdAt}","language": "en", "authors": "Ivan Ivanov"}"""
             )
           )
         )
@@ -45,7 +42,7 @@ class ArticleControllerSpec extends ControllerSpec {
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
         val expected =
-          s"""[{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","tags":[]}]"""
+          s"""[{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","authors":"Ivan Ivanov","summary":null,"url":null,"source":null,"tags":null}]"""
 
         res mustHaveStatus (Status.Ok, Some(expected))
         verify(svc).getAll
@@ -62,7 +59,7 @@ class ArticleControllerSpec extends ControllerSpec {
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
         val expected =
-          s"""{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","tags":[]}"""
+          s"""{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","tags":[],"authors":"Ivan Ivanov","summary":null,"url":null,"source":null,"tags":null}"""
         res mustHaveStatus (Status.Ok, Some(expected))
         verify(svc).get(ArticleFixtures.aid)
       }
@@ -91,7 +88,7 @@ class ArticleControllerSpec extends ControllerSpec {
           method = Method.PUT,
           body = Some(
             parseJson(
-              s"""{"title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en"}"""
+              s"""{"title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en", "authors": "Ivan Ivanov"}"""
             )
           )
         )
@@ -113,7 +110,7 @@ class ArticleControllerSpec extends ControllerSpec {
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))
 
         val expected =
-          """{"message":"Field title cannot be empty, Field content cannot be empty, Missing required field createdAt, Missing required field language"}"""
+          """{"message":"Field title cannot be empty, Field content cannot be empty, Missing required field createdAt, Missing required field language, Missing required field authors"}"""
 
         res mustHaveStatus (Status.UnprocessableEntity, Some(expected))
         verify(svc, times(2)).isValidId(any[String])
@@ -130,7 +127,7 @@ class ArticleControllerSpec extends ControllerSpec {
           method = Method.PUT,
           body = Some(
             parseJson(
-              s"""{"title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en"}"""
+              s"""{"title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","authors": "Ivan Ivanov"}"""
             )
           )
         )

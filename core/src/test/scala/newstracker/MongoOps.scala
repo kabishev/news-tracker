@@ -14,6 +14,7 @@ trait MongoOps {
       content: String,
       createdAt: LocalDate = LocalDate.now(),
       language: String = "en",
+      authors: String = "Ivan Ivanov",
       tags: List[String] = List.empty
   ): Document = Document(
     "_id"       -> ObjectId(id.value).toBson,
@@ -21,6 +22,7 @@ trait MongoOps {
     "content"   -> content.toBson,
     "createdAt" -> Instant.ofEpochSecond(createdAt.toEpochDay * 86400).toBson,
     "language"  -> language.toBson,
+    "authors"   -> authors.toBson,
     "tags"      -> tags.toBson
   )
 }

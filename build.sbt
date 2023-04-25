@@ -63,6 +63,19 @@ lazy val kafka = project
     libraryDependencies ++= Dependencies.kafka ++ Dependencies.testKafka
   )
 
+lazy val clients = project
+  .in(file("clients"))
+  .dependsOn(kafka)
+  .enablePlugins(JavaAppPackaging, DockerPlugin)
+  .settings(common)
+  .settings(docker)
+  .settings(
+    name                 := "news-tracker-clients",
+    moduleName           := "news-tracker-clients",
+    Docker / packageName := "news-tracker-clients",
+    libraryDependencies ++= Dependencies.clients ++ Dependencies.testClients
+  )
+
 lazy val root = project
   .in(file("."))
   .settings(noPublish)

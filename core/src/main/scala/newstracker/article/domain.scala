@@ -10,6 +10,10 @@ package object domain {
   @newtype case class ArticleContent(value: String)
   @newtype case class ArticleCreatedAt(value: LocalDate)
   @newtype case class ArticleLanguage(value: String)
+  @newtype case class ArticleAuthors(value: String)
+  @newtype case class ArticleSummary(value: String)
+  @newtype case class ArticleUrl(value: String)
+  @newtype case class ArticleSource(value: String)
   @newtype case class ArticleTags(value: Set[String])
 
   final case class Article(
@@ -18,7 +22,11 @@ package object domain {
       content: ArticleContent,
       createdAt: ArticleCreatedAt,
       language: ArticleLanguage,
-      tags: ArticleTags
+      authors: ArticleAuthors,
+      summary: Option[ArticleSummary],
+      url: Option[ArticleUrl],
+      source: Option[ArticleSource],
+      tags: Option[ArticleTags]
   )
 
   final case class CreateArticle(
@@ -26,6 +34,10 @@ package object domain {
       content: ArticleContent,
       createdAt: ArticleCreatedAt,
       language: ArticleLanguage,
-      tags: ArticleTags
+      authors: ArticleAuthors,
+      summary: Option[ArticleSummary],
+      url: Option[ArticleUrl],
+      source: Option[ArticleSource],
+      tags: Option[ArticleTags]
   )
 }
