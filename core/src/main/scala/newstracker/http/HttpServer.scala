@@ -22,7 +22,7 @@ object HttpServer {
       EmberServerBuilder
         .default[F]
         .withHostOption(Ipv4Address.fromString(cfg.host))
-        .withPort(Port.fromInt(cfg.port).get) // rather not-scala way. I understand that it's fail-fast but better decode Port
+        .withPort(cfg.port)
         .withHttpApp(httpApp)
         .build
         .evalTap(showBanner)

@@ -1,6 +1,7 @@
 package newstracker.article
 
 import cats.effect.IO
+import fs2.Stream
 import org.http4s.implicits._
 import org.http4s.{Method, Status, Uri}
 import org.mockito.ArgumentMatchers.any
@@ -39,7 +40,7 @@ class ArticleControllerSpec extends ControllerSpec {
     "GET /articles" should {
       "return articles" in {
         val svc = mock[ArticleService[IO]]
-        when(svc.getAll).thenReturn(IO.pure(List(ArticleFixtures.article())))
+        when(svc.getAll).thenReturn(Stream(ArticleFixtures.article()))
 
         val req = request(uri"/articles", method = Method.GET)
         val res = ArticleController.make[IO](svc).flatMap(_.routes.orNotFound.run(req))

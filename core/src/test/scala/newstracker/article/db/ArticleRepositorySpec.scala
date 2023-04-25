@@ -69,7 +69,7 @@ class ArticleRepositorySpec extends AsyncWordSpec with Matchers with EmbeddedMon
         withEmbeddedMongoDb { db =>
           val actual = for {
             repo     <- ArticleRepository.make(db)
-            articles <- repo.getAll
+            articles <- repo.getAll.compile.toList
           } yield articles
 
           actual.map { as =>
@@ -88,7 +88,7 @@ class ArticleRepositorySpec extends AsyncWordSpec with Matchers with EmbeddedMon
           val actual = for {
             repo     <- ArticleRepository.make(db)
             _        <- repo.update(update)
-            articles <- repo.getAll
+            articles <- repo.getAll.compile.toList
           } yield articles
 
           actual.map { as =>
@@ -104,7 +104,7 @@ class ArticleRepositorySpec extends AsyncWordSpec with Matchers with EmbeddedMon
           val actual = for {
             repo     <- ArticleRepository.make(db)
             _        <- repo.update(update)
-            articles <- repo.getAll
+            articles <- repo.getAll.compile.toList
           } yield articles
 
           actual.attempt.map(_ mustBe Left(article.errors.ArticleDoesNotExist(update.id)))

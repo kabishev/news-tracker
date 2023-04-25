@@ -5,22 +5,25 @@ import cats.implicits._
 import fs2.kafka._
 import io.circe.Decoder
 import io.circe.jawn.decodeByteArray
+import io.circe.parser._
 
 object Consumer {
-  def makeWithoutKey[F[_]: Async, V](config: KafkaConfig)(implicit vdecoder: Decoder[V]): Resource[F, KafkaConsumer[F, Unit, V]] = {
+  def make[F[_]: Async, K, V](
+      config: KafkaConfig,
+      autocommit: Boolean = false
+  )(implicit kdecoder: Decoder[K], vdecoder: Decoder[V]): Resource[F, KafkaConsumer[F, K, V]] = {
     implicit val vd: Deserializer[F, V] = Deserializer.lift[F, V](decodeByteArray[V](_).liftTo[F])
-    implicit val kd: Deserializer[F, Unit] = Deserializer.lift[F, Unit](_ => ().pure[F])
+    implicit val kd: Deserializer[F, K] = Deserializer.lift[F, K] { bytes =>
+      val toDecode = if (bytes == null) "null".getBytes else bytes
+      decodeByteArray[K](toDecode).liftTo[F]
+    }
 
-    val settings = ConsumerSettings[F, Unit, V]
+    val settings = ConsumerSettings[F, K, V]
       .withAutoOffsetReset(AutoOffsetReset.Earliest)
       .withBootstrapServers(config.servers)
       .withGroupId(config.groupId)
-      .withEnableAutoCommit(true)  // do you always need autocommit=true?
+      .withEnableAutoCommit(autocommit)
 
     KafkaConsumer.resource(settings)
   }
-
-  // you may make it more universal like that:
-  //  def make[F[_]: Async, K: Deserializer[F, *], V](config: KafkaConfig, autocommit = false)(implicit vdecoder: Decoder[V]): Resource[F, KafkaConsumer[F, K, V]]
-  //  and specify settings for manual commit
 }

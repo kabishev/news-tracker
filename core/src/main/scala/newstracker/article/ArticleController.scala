@@ -31,7 +31,7 @@ final private class ArticleController[F[_]: Async](private val service: ArticleS
 
   private val basePath = "articles"
 
-  val idValidator: Validator[String] = Validator.custom( // private
+  private val idValidator: Validator[String] = Validator.custom(
     id => if (service.isValidId(id)) ValidationResult.Valid else ValidationResult.Invalid(s"Invalid representation of an id: $id"),
     Some(s"Invalid representation of an id")
   )
@@ -42,8 +42,7 @@ final private class ArticleController[F[_]: Async](private val service: ArticleS
     .in(basePath)
     .out(jsonBody[List[ArticleView]])
     .serverLogic { _ =>
-      service.getAll
-        .mapResponse(_.map(ArticleView.from))
+      service.getAll.compile.toList.mapResponse(_.map(ArticleView.from))
     }
 
   private def getArticleById = Controller.publicEndpoint.get

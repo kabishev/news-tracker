@@ -16,6 +16,6 @@ object createArticle {
 
   def makeConsumer[F[_]: Async](config: KafkaConfig): Resource[F, KafkaConsumer[F, Unit, Event]] =
     Consumer
-      .makeWithoutKey[F, Event](config)
+      .make[F, Unit, Event](config, true)
       .evalTap(_.subscribeTo("create-article"))
 }
