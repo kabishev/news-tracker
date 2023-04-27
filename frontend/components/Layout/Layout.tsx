@@ -30,10 +30,10 @@ const mainListItems = (
         <ListItemText primary="Articles" />
       </ListItemButton>
     </Link>
-    <Link href="/bots" className={styles.link}>
+    <Link href="/monitoring" className={styles.link}>
       <ListItemButton>
         <ListItemIcon><PrecisionManufacturingIcon /></ListItemIcon>
-        <ListItemText primary="Bots" />
+        <ListItemText primary="Monitoring" />
       </ListItemButton>
     </Link>
   </React.Fragment>
@@ -85,7 +85,7 @@ export const Layout = ({ children }: React.PropsWithChildren) => {
             overflow: 'auto',
           }}
         >
-          <Container sx={{ mt: 4, mb: 4 }}>{children}</Container>
+          <Box sx={{ margin: 4 }}>{children}</Box>
         </Box>
       </Box>
     </ThemeProvider>
