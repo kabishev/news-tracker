@@ -77,4 +77,4 @@ services:
     networks:
       - news-tracker-net
     environment:
-      SERVER_ADDRESS: http://news-tracker-core:8080
+      NEXT_PUBLIC_SERVER_ADDRESS: http://news-tracker-core:8080
