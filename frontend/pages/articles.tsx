@@ -8,12 +8,21 @@ import { Article } from '@/types/api/article'
 
 export default function ArticlesPage() {
   const [data, setData] = React.useState<Article[]>([])
-  const [isLoading, setLoading] = React.useState(false)
+  const [isLoading, setLoading] = React.useState(true)
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/api/articles`)
-      .then(res => res.json())
-      .then(data => setData(data))
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/api/articles`)
+        const data = await res.json()
+        setData(data)
+        setLoading(false)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    fetchData()
   }, [])
 
   return (
