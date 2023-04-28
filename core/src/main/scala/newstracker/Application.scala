@@ -6,6 +6,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import newstracker.article.Articles
 import newstracker.config.ApplicationConfig
+import newstracker.health.Health
 import newstracker.http.{HttpApi, HttpServer}
 
 object Application extends IOApp.Simple {
@@ -15,10 +16,11 @@ object Application extends IOApp.Simple {
     _      <- logger.info(Console.GREEN + config + Console.RESET)
     _ <- ApplicationResources.make[IO](config).use { resources =>
       for {
+        health   <- Health.make[IO]
         articles <- Articles.make[IO](resources)
-        http     <- HttpApi.make[IO](articles)
+        http     <- HttpApi.make[IO](health, articles)
         server = HttpServer[IO].ember(config.httpServer, http.app).use(_ => IO.never)
-        kafka = articles.kafka
+        kafka  = articles.kafka
         _ <- Stream.eval(server).concurrently(kafka.stream).compile.drain
       } yield ()
     }

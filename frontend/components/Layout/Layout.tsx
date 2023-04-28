@@ -4,13 +4,13 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import MenuIcon from '@mui/icons-material/Menu'
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing'
 import Box from '@mui/material/Box'
-import Container from '@mui/material/Container'
 import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import List from '@mui/material/List'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
+import Snackbar from '@mui/material/Snackbar'
 import { ThemeProvider } from '@mui/material/styles'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
@@ -19,6 +19,7 @@ import Link from 'next/link'
 import styles from '@/styles/Layout.module.css'
 import { theme } from '@/styles/theme'
 
+import { Alert } from './Alert'
 import { AppBar } from './AppBar'
 import { Drawer } from './Drawer'
 
@@ -42,6 +43,27 @@ const mainListItems = (
 export const Layout = ({ children }: React.PropsWithChildren) => {
   const [open, setOpen] = React.useState(true)
   const toggleDrawer = () => { setOpen(!open) }
+
+  const [errorMessage, setErrorMessage] = React.useState<string | undefined>(undefined)
+
+  React.useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/health/status`)
+        if (res.status !== 200) {
+          setErrorMessage("Server is not available")
+        }
+      } catch (e) {
+        setErrorMessage("Server is not available")
+      }
+    }
+
+    const interval = setInterval(checkHealth, 20000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleCloseError = () => setErrorMessage(undefined)
 
   return (
     <ThemeProvider theme={theme}>
@@ -87,6 +109,17 @@ export const Layout = ({ children }: React.PropsWithChildren) => {
         >
           <Box sx={{ margin: 4 }}>{children}</Box>
         </Box>
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={errorMessage !== undefined}
+          onClose={handleCloseError}
+          message={errorMessage}
+          key={'topcenter'}
+        >
+          <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
+            {errorMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </ThemeProvider>
   )
