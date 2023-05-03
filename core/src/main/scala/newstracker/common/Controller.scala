@@ -5,6 +5,7 @@ import cats.effect._
 import cats.implicits._
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
+import org.http4s.server.websocket.WebSocketBuilder2
 import sttp.model.StatusCode
 import sttp.tapir.DecodeResult.Error.{JsonDecodeException, _}
 import sttp.tapir._
@@ -28,6 +29,7 @@ trait Controller[F[_]] {
   }
 
   def routes: HttpRoutes[F]
+  def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F]
 }
 
 object Controller {

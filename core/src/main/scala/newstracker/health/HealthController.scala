@@ -7,6 +7,7 @@ import io.circe.Codec
 import io.circe.generic.auto._
 import io.estatico.newtype.macros.newtype
 import org.http4s.HttpRoutes
+import org.http4s.server.websocket.WebSocketBuilder2
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
@@ -24,7 +25,8 @@ final class HealthController[F[_]: Async](private val startupTime: Ref[F, Instan
     .out(jsonBody[HealthController.AppStatus])
     .serverLogicSuccess(req => startupTime.get.map(t => HealthController.AppStatus(t)))
 
-  def routes: HttpRoutes[F] = Http4sServerInterpreter[F]().toRoutes(statusEndpoint)
+  override def routes: HttpRoutes[F]                                  = Http4sServerInterpreter[F]().toRoutes(statusEndpoint)
+  override def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F] = _ => HttpRoutes.empty
 }
 
 object HealthController {

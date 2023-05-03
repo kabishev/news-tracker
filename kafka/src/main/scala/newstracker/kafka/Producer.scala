@@ -7,6 +7,7 @@ import fs2.kafka._
 import io.circe.Encoder
 
 trait Producer[F[_], K, V] {
+  def produceOne(key: K, value: V): F[Unit]
   def pipe: Pipe[F, (K, V), Unit]
 }
 
@@ -28,6 +29,14 @@ final private class LiveProducer[F[_]: Async, K, V](
       .map(rec => ProducerRecords.one(rec))
       .through(KafkaProducer.pipe(settings))
       .evalMap(_ => Sync[F].pure(()))
+
+  override def produceOne(key: K, value: V): F[Unit] =
+    Stream
+      .emit(ProducerRecord(topic, key, value))
+      .map(rec => ProducerRecords.one(rec))
+      .through(KafkaProducer.pipe(settings))
+      .compile
+      .drain
 }
 
 object Producer {

@@ -4,26 +4,41 @@ import Head from 'next/head'
 
 import Articles from '@/components/Articles'
 import styles from '@/styles/Home.module.css'
-import { Article } from '@/types/api/article'
+import { Article, ArticleWsEvent } from '@/types/api/article'
 
 export default function ArticlesPage() {
-  const [data, setData] = React.useState<Article[]>([])
+  const [articles, setArticles] = React.useState<Article[]>([])
   const [isLoading, setLoading] = React.useState(true)
 
+  const fetchArticles = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/api/articles`)
+      const data: Article[] = await res.json()
+      setArticles(data)
+      setLoading(false)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/api/articles`)
-        const data = await res.json()
-        setData(data)
-        setLoading(false)
-      } catch (e) {
-        console.error(e)
+    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/api/articles/ws`)
+    ws.addEventListener('message', (event: MessageEvent) => {
+      const message: ArticleWsEvent = JSON.parse(event.data);
+
+      if (message.ArticleCreated) {
+        fetchArticles()
+      }
+    });
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close()
       }
     }
-
-    fetchData()
   }, [])
+
+  useEffect(() => { fetchArticles() }, [])
 
   return (
     <>
@@ -35,7 +50,7 @@ export default function ArticlesPage() {
       <div className={styles.center}>
         {isLoading
           ? <CircularProgress />
-          : <Articles data={data ?? []} />
+          : <Articles data={articles ?? []} />
         }
       </div>
     </>

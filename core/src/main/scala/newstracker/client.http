@@ -15,10 +15,11 @@ POST {{endpoint}}
 Content-Type: application/json
 
 {
-  "title": "title #23",
-  "content": "text #2",
+  "title": "title #1",
+  "content": "text #1",
   "createdAt": "2022-03-22",
-  "language": "en"
+  "language": "en",
+  "authors": "author #1"
 }
 
 ### Health status

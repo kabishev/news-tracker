@@ -11,6 +11,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import newstracker.article.ArticleFixtures
 import newstracker.article.db.ArticleRepository
 import newstracker.article.domain.{Article, CreateArticle}
+import newstracker.kafka.Producer
 
 class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
   "A ArticleService" should {
@@ -18,13 +19,17 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.create(any[CreateArticle])).thenReturn(IO.pure(ArticleFixtures.aid))
 
+      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
+      when(producer.produceOne(any[Unit], any[newstracker.kafka.createdArticle.Event])).thenReturn(IO.unit)
+
       val actual = for {
-        svc <- ArticleService.make[IO](repo)
+        svc <- ArticleService.make[IO](repo, producer)
         res <- svc.create(ArticleFixtures.create())
       } yield res
 
       actual.unsafeToFuture().map { a =>
         verify(repo).create(ArticleFixtures.create())
+        verify(producer).produceOne((), ArticleFixtures.createdArticleEvent())
         a mustBe ArticleFixtures.aid
       }
     }
@@ -33,8 +38,10 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.get(ArticleFixtures.aid)).thenReturn(IO.pure(ArticleFixtures.article()))
 
+      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
+
       val actual = for {
-        svc <- ArticleService.make[IO](repo)
+        svc <- ArticleService.make[IO](repo, producer)
         res <- svc.get(ArticleFixtures.aid)
       } yield res
 
@@ -48,8 +55,10 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.getAll).thenReturn(IO.pure(List(ArticleFixtures.article())))
 
+      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
+
       val actual = for {
-        svc <- ArticleService.make[IO](repo)
+        svc <- ArticleService.make[IO](repo, producer)
         res <- svc.getAll
       } yield res
 
@@ -63,8 +72,10 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.update(any[Article])).thenReturn(IO.unit)
 
+      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
+
       val actual = for {
-        svc <- ArticleService.make[IO](repo)
+        svc <- ArticleService.make[IO](repo, producer)
         res <- svc.update(ArticleFixtures.article())
       } yield res
 

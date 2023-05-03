@@ -14,9 +14,9 @@ final class Articles[F[_]] private (val controller: Controller[F], val kafka: Ar
 object Articles {
   def make[F[_]: Async: Logger](resources: ApplicationResources[F]): F[Articles[F]] =
     for {
-      repo <- ArticleRepository.make[F](resources.mongo)
-      svc  <- ArticleService.make[F](repo)
-      ctrl <- ArticleController.make[F](svc)
+      repo  <- ArticleRepository.make[F](resources.mongo)
+      svc   <- ArticleService.make[F](repo, resources.createdArticleProducer)
+      ctrl  <- ArticleController.make[F](svc, resources.createdArticleConsumer)
       kafka <- ArticleKafka.make[F](svc, resources.createArticleConsumer)
     } yield new Articles[F](ctrl, kafka)
 }
