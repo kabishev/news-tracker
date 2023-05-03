@@ -10,7 +10,7 @@ import org.scalatest.wordspec.AnyWordSpec
 class ConsumerSpec extends AnyWordSpec with Matchers with EmbeddedKafka {
   val topic = "topictest"
   val baseConfig =
-    EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0, customBrokerProperties = Map("zookeeper.connection.timeout.ms" -> "30000"))
+    EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0, customBrokerProperties = Map("zookeeper.connection.timeout.ms" -> "60000"))
 
   "Consumer" should {
     "consume messages from a topic" in {
