@@ -22,7 +22,7 @@ object HttpServer {
       EmberServerBuilder
         .default[F]
         .withHostOption(Ipv4Address.fromString(cfg.host))
-        .withPort(Port.fromInt(cfg.port).get)
+        .withPort(cfg.port)
         .withHttpApp(httpApp)
         .build
         .evalTap(showBanner)

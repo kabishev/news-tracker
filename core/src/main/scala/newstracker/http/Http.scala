@@ -1,6 +1,5 @@
 package newstracker.http
 
-import cats.Monad
 import cats.effect.Async
 import org.http4s._
 import org.http4s.implicits._
@@ -27,5 +26,5 @@ final class HttpApi[F[_]: Async] private (private val articles: Articles[F]) {
 }
 
 object HttpApi {
-  def make[F[_]: Async](articles: Articles[F]): F[HttpApi[F]] = Monad[F].pure(new HttpApi(articles))
+  def make[F[_]: Async](articles: Articles[F]): F[HttpApi[F]] = Async[F].pure(new HttpApi(articles))
 }
