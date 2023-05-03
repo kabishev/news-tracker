@@ -1,6 +1,10 @@
 package newstracker
 
-sealed trait ApplicationError extends Throwable {
+import scala.util.control.NoStackTrace
+
+sealed trait ApplicationError extends NoStackTrace {
+  // NoStackTrace nice optimization stuff when you don't need stacktrace,
+  // because you apriori know where error was thrown
   def message: String
   override def getMessage: String = message
 }

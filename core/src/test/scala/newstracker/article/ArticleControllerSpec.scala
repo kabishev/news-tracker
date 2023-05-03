@@ -1,6 +1,7 @@
 package newstracker.article
 
 import cats.effect.IO
+import fs2.Stream
 import org.http4s.implicits._
 import org.http4s.{Method, Status, Uri}
 import org.mockito.ArgumentMatchers.any

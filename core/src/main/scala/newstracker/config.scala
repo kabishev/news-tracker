@@ -5,6 +5,10 @@ import pureconfig._
 import pureconfig.generic.auto._
 
 import newstracker.kafka.KafkaConfig
+import com.comcast.ip4s.Port
+import com.typesafe.config.Config
+import pureconfig.error.ConfigReaderFailures
+import pureconfig.error.CannotConvert
 
 object config {
   final case class ApplicationConfig(
@@ -20,10 +24,12 @@ object config {
 
   final case class HttpServerConfig(
       host: String,
-      port: Int
+      port: Port
   )
 
-  final case class Topic(article: String)
+  implicit val portReader: ConfigReader[Port] = ConfigReader.fromString { str =>
+    Port.fromString(str).toRight(CannotConvert(str, "Port", "Invalid port number"))
+  }
 
   object ApplicationConfig {
     def load[F[_]: Sync]: F[ApplicationConfig] =
