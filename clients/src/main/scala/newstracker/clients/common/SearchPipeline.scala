@@ -1,5 +1,5 @@
 package newstracker.clients.common
 
-trait SearchArticleClient[F[_]] {
+trait SearchPipeline[F[_]] {
   def search(): F[Unit]
 }

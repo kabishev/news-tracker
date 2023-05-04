@@ -23,10 +23,12 @@ final private class LiveProducer[F[_]: Async, K, V](
     ProducerSettings(keySerializer = ks, valueSerializer = vs)
       .withBootstrapServers(config.servers)
 
+  private val kafkaPipe = KafkaProducer.pipe[F, K, V, Unit](settings)
+
   override def pipe: Pipe[F, (K, V), Unit] =
     _.map { case (key, value) => ProducerRecord(topic, key, value) }
       .map(rec => ProducerRecords.one(rec))
-      .through(KafkaProducer.pipe(settings))
+      .through(kafkaPipe)
       .drain
 }
 
