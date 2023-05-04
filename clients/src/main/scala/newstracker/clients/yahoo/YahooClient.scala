@@ -31,8 +31,8 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Concurrent: Logger]
     "X-RapidAPI-Key"  -> config.apiKey
   )
 
-  override def search(): F[Unit] =
-    Stream
+  override def search(): F[Unit] = {
+    def searchStream: Stream[F, Unit] = Stream
       .awakeEvery(config.pollInterval)
       .evalMap { _ =>
         for {
@@ -45,9 +45,10 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Concurrent: Logger]
       .flatMap(uuids => Stream.emits(uuids.toList))
       .evalMap(getArticleDetails(_).map(details => ((), details.toEvent)))
       .through(createArticleProducer.pipe)
-      .compile
-      .drain
-      .handleErrorWith(error => Logger[F].error(s"YahooRapidClient search failed: ${error.getMessage}").as(()))
+      .handleErrorWith(error => Stream.eval(Logger[F].error(s"search failed: ${error.getMessage}")) >> searchStream)
+
+    searchStream.compile.drain
+  }
 
   private def getNewArticleIds(): F[List[ArticleUuid]] =
     basicRequest
