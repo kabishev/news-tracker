@@ -36,7 +36,7 @@ object ApplicationResources {
     } yield new ApplicationResources[F] {
       override val httpClientBackend: SttpBackend[F, Any]                        = backend
       override val mongo: MongoDatabase[F]                                       = db
-      override def createArticleProducer: Producer[F, Unit, createArticle.Event] = articleProducer
+      override val createArticleProducer: Producer[F, Unit, createArticle.Event] = articleProducer
     }
   }
 }

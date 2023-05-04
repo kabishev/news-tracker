@@ -24,7 +24,7 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Concurrent: Logger]
     service: ArticleService[F],
     createArticleProducer: Producer[F, Unit, createArticle.Event]
 ) extends SearchArticleClient[F] {
-  private val region = "de"
+  import YahooClient._
 
   private val headers: Map[String, String] = Map(
     "X-RapidAPI-Host" -> config.apiHost,
@@ -75,22 +75,11 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Concurrent: Logger]
           Logger[F].error(s"getArticleDetails request failed: ${error.getMessage}") *>
             error.raiseError[F, ArticleDetails]
       })
-
-  implicit class ArticleDetailsOps(details: ArticleDetails) {
-    def toEvent = createArticle.Event(
-      details.title.value,
-      details.content.value,
-      details.createdAt.value,
-      region,
-      details.authors.value,
-      details.summary.value.some,
-      details.url.value.some,
-      details.source.value.some
-    )
-  }
 }
 
 object YahooClient {
+  val region = "de"
+
   def make[F[_]: Async: Logger](
       config: YahooConfig,
       resources: ApplicationResources[F]
@@ -104,4 +93,17 @@ object YahooClient {
       service,
       resources.createArticleProducer
     )
+
+  implicit class ArticleDetailsOps(val details: ArticleDetails) extends AnyVal {
+    def toEvent = createArticle.Event(
+      details.title.value,
+      details.content.value,
+      details.createdAt.value,
+      region,
+      details.authors.value,
+      details.summary.value.some,
+      details.url.value.some,
+      details.source.value.some
+    )
+  }
 }

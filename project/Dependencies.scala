@@ -13,6 +13,7 @@ object Dependencies {
     val log4cats        = "2.5.0"
     val mokito          = "3.2.15.0"
     val mongo4cats      = "0.6.10"
+    val nameOf          = "4.0.0"
     val newtype         = "0.4.4"
     val organizeImports = "0.6.0"
     val pureConfig      = "0.17.2"
@@ -26,6 +27,7 @@ object Dependencies {
   object Libraries {
     val newtype         = "io.estatico"          %% "newtype"          % Versions.newtype
     val organizeImports = "com.github.liancheng" %% "organize-imports" % Versions.organizeImports
+    val nameof          = "com.github.dwickern"  %% "scala-nameof"     % Versions.nameOf % "provided"
 
     object cats {
       val core          = "org.typelevel"  %% "cats-core"      % Versions.cats
@@ -144,7 +146,8 @@ object Dependencies {
       Libraries.logging.all ++
       Seq(
         Libraries.pureConfig.core,
-        Libraries.newtype
+        Libraries.newtype,
+        Libraries.nameof
       )
 
   lazy val testClients = Seq()

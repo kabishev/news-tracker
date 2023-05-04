@@ -27,7 +27,7 @@ final private class LiveProducer[F[_]: Async, K, V](
     _.map { case (key, value) => ProducerRecord(topic, key, value) }
       .map(rec => ProducerRecords.one(rec))
       .through(KafkaProducer.pipe(settings))
-      .evalMap(_ => Sync[F].pure(()))
+      .drain
 }
 
 object Producer {
@@ -35,5 +35,5 @@ object Producer {
       config: KafkaConfig,
       topic: String
   )(implicit kencoder: Encoder[K], vencoder: Encoder[V]): Resource[F, Producer[F, K, V]] =
-    Resource.pure[F, Producer[F, K, V]](new LiveProducer[F, K, V](config, topic))
+    Resource.eval(Async[F].delay(new LiveProducer[F, K, V](config, topic)))
 }

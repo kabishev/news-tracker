@@ -3,16 +3,16 @@ package newstracker.clients.yahoo.db
 import cats.data.NonEmptyList
 import cats.effect.Async
 import cats.implicits._
+import com.github.dwickern.macros.NameOf._
 import fs2.Stream
 import io.circe.generic.auto._
 import mongo4cats.circe._
 import mongo4cats.collection.MongoCollection
 import mongo4cats.database.MongoDatabase
 
-import newstracker.clients.common.Repository
 import newstracker.clients.yahoo.domain._
 
-trait ArticleRepository[F[_]] extends Repository[F] {
+trait ArticleRepository[F[_]] {
   def create(articles: NonEmptyList[CreateArticle]): F[Unit]
   def getAll: Stream[F, Article]
 }
@@ -29,7 +29,7 @@ final private class LiveTransactionRepository[F[_]: Async](private val collectio
 
   override def getAll: Stream[F, Article] =
     collection.find
-      .sortByDesc(Field.CreateAt)
+      .sortByDesc(nameOf[ArticleEntity](_.createdAt))
       .stream
       .map(_.toDomain)
 }
