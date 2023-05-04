@@ -51,7 +51,7 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
 
       val actual = for {
         svc <- ArticleService.make[IO](repo)
-        res <- svc.getAll
+        res <- svc.getAll.compile.toList
       } yield res
 
       actual.unsafeToFuture().map { a =>
