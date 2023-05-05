@@ -10,6 +10,7 @@ import newstracker.article.Articles
 import newstracker.health.Health
 
 import scala.concurrent.duration._
+import newstracker.health.Health
 
 final class HttpApi[F[_]: Async] private (
     private val health: Health[F],
