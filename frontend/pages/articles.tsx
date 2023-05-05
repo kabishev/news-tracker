@@ -1,12 +1,21 @@
 import React, { useEffect } from 'react'
+import CircularProgress from '@mui/material/CircularProgress'
 import Head from 'next/head'
-import { GetServerSideProps } from 'next/types'
 
 import Articles from '@/components/Articles'
 import styles from '@/styles/Home.module.css'
 import { Article } from '@/types/api/article'
 
-export default function ArticlesPage({ data }: { data: Article[] }) {
+export default function ArticlesPage() {
+  const [data, setData] = React.useState<Article[]>([])
+  const [isLoading, setLoading] = React.useState(false)
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/api/articles`)
+      .then(res => res.json())
+      .then(data => setData(data))
+  }, [])
+
   return (
     <>
       <Head>
@@ -15,14 +24,11 @@ export default function ArticlesPage({ data }: { data: Article[] }) {
         <title>Articles</title>
       </Head>
       <div className={styles.center}>
-        <Articles data={data ?? []} />
+        {isLoading
+          ? <CircularProgress />
+          : <Articles data={data ?? []} />
+        }
       </div>
     </>
   )
-}
-
-export const getServerSideProps: GetServerSideProps = async () => {
-  const res = await fetch(`${process.env.SERVER_ADDRESS}/api/articles`)
-  const data = await res.json()
-  return { props: { data } }
 }
