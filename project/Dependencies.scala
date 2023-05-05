@@ -2,34 +2,40 @@ import sbt._
 
 object Dependencies {
   object Versions {
-    val circe           = "0.14.5"
-    val http4s          = "0.23.18"
-    val log4cats        = "2.5.0"
-    val pureConfig      = "0.17.2"
-    val fs2             = "3.6.1"
-    val kafka           = "2.5.0"
-    val confluent       = "5.5.0"
-    val newtype         = "0.4.4"
-    val contextApplied  = "0.1.4"
-    val mongo4cats      = "0.6.10"
     val cats            = "2.9.0"
     val catsEffect      = "3.4.8"
-    val slf4j           = "2.0.7"
-    val scalatest       = "3.2.15"
-    val scalacheck      = "1.17.0"
+    val catsRetry       = "3.1.0"
+    val circe           = "0.14.5"
+    val confluent       = "5.5.0"
+    val contextApplied  = "0.1.4"
+    val fs2             = "3.6.1"
+    val http4s          = "0.23.18"
+    val kafka           = "2.5.0"
+    val kindProjector   = "0.13.2"
+    val log4cats        = "2.5.0"
     val mokito          = "3.2.15.0"
-    val tapir           = "1.2.12"
+    val mongo4cats      = "0.6.10"
+    val nameOf          = "4.0.0"
+    val newtype         = "0.4.4"
     val organizeImports = "0.6.0"
+    val pureConfig      = "0.17.2"
+    val scalacheck      = "1.17.0"
+    val scalatest       = "3.2.15"
+    val slf4j           = "2.0.7"
+    val sttp            = "3.8.15"
+    val tapir           = "1.2.12"
   }
 
   object Libraries {
     val newtype         = "io.estatico"          %% "newtype"          % Versions.newtype
     val organizeImports = "com.github.liancheng" %% "organize-imports" % Versions.organizeImports
+    val nameof          = "com.github.dwickern"  %% "scala-nameof"     % Versions.nameOf % "provided"
 
     object cats {
-      val core          = "org.typelevel"  %% "cats-core"      % Versions.cats
-      val effect        = "org.typelevel"  %% "cats-effect"    % Versions.catsEffect
-      val kindProjector = ("org.typelevel" %% "kind-projector" % "0.13.2").cross(CrossVersion.full)
+      val core          = "org.typelevel"    %% "cats-core"      % Versions.cats
+      val effect        = "org.typelevel"    %% "cats-effect"    % Versions.catsEffect
+      val retry         = "com.github.cb372" %% "cats-retry"     % Versions.catsRetry
+      val kindProjector = ("org.typelevel"   %% "kind-projector" % Versions.kindProjector).cross(CrossVersion.full)
       val all           = Seq(core, effect, kindProjector)
     }
 
@@ -65,6 +71,7 @@ object Dependencies {
       val core     = "io.github.kirill5k" %% "mongo4cats-core"     % Versions.mongo4cats
       val circe    = "io.github.kirill5k" %% "mongo4cats-circe"    % Versions.mongo4cats
       val embedded = "io.github.kirill5k" %% "mongo4cats-embedded" % Versions.mongo4cats
+      val all      = Seq(core, circe)
     }
 
     object tapir {
@@ -72,6 +79,13 @@ object Dependencies {
       val circe  = "com.softwaremill.sttp.tapir" %% "tapir-json-circe"    % Versions.tapir
       val http4s = "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % Versions.tapir
       val all    = Seq(core, circe, http4s)
+    }
+
+    object sttp {
+      val core        = "com.softwaremill.sttp.client3" %% "core"  % Versions.sttp
+      val circe       = "com.softwaremill.sttp.client3" %% "circe" % Versions.sttp
+      val catsBackend = "com.softwaremill.sttp.client3" %% "fs2"   % Versions.sttp
+      val all         = Seq(core, circe, catsBackend)
     }
 
     object pureConfig {
@@ -98,14 +112,14 @@ object Dependencies {
       Libraries.http4s.all ++
       Libraries.circe.all ++
       Libraries.tapir.all ++
+      Libraries.mongo4cats.all ++
       Libraries.logging.all ++
       Seq(
         Libraries.fs2.core,
         Libraries.pureConfig.core,
-        Libraries.newtype,
-        Libraries.mongo4cats.core,
-        Libraries.mongo4cats.circe
+        Libraries.newtype
       )
+
   lazy val testCore = Seq(
     Libraries.testing.scalatest,
     Libraries.testing.scalacheck,
@@ -124,6 +138,23 @@ object Dependencies {
     Libraries.testing.scalatest,
     Libraries.testing.kafkaEmbedded
   ).map(_ % Test)
+
+  lazy val clients =
+    Libraries.cats.all ++
+      Libraries.sttp.all ++
+      Libraries.kafka.all ++
+      Libraries.fs2.all ++
+      Libraries.circe.all ++
+      Libraries.mongo4cats.all ++
+      Libraries.logging.all ++
+      Seq(
+        Libraries.pureConfig.core,
+        Libraries.newtype,
+        Libraries.cats.retry,
+        Libraries.nameof
+      )
+
+  lazy val testClients = Seq()
 
   lazy val scalafix = Seq(
     Libraries.organizeImports

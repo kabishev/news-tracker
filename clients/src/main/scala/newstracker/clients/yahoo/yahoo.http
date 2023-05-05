@@ -1,0 +1,10 @@
+### The list of news
+POST https://apidojo-yahoo-finance-v1.p.rapidapi.com/news/v2/list
+Content-Type: text/plain
+X-RapidAPI-Key: 
+X-RapidAPI-Host: apidojo-yahoo-finance-v1.p.rapidapi.com
+
+### Get news details
+GET https://apidojo-yahoo-finance-v1.p.rapidapi.com/news/v2/get-details?uuid=9803606d-a324-3864-83a8-2bd621e6ccbd
+X-RapidAPI-Key: 
+X-RapidAPI-Host: apidojo-yahoo-finance-v1.p.rapidapi.com

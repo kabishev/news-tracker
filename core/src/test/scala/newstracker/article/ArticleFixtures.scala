@@ -18,7 +18,11 @@ package object ArticleFixtures {
     ArticleContent("content"),
     createdAt,
     ArticleLanguage("en"),
-    ArticleTags(Set.empty)
+    ArticleAuthors("Ivan Ivanov"),
+    None,
+    None,
+    None,
+    None
   )
 
   def create(
@@ -26,6 +30,10 @@ package object ArticleFixtures {
       content: ArticleContent = ArticleContent("content"),
       createdAt: ArticleCreatedAt = createdAt,
       language: ArticleLanguage = ArticleLanguage("en"),
-      tags: ArticleTags = ArticleTags(Set.empty)
-  ): CreateArticle = CreateArticle(title, content, createdAt, language, tags)
+      authors: ArticleAuthors = ArticleAuthors("Ivan Ivanov"),
+      summary: Option[ArticleSummary] = None,
+      url: Option[ArticleUrl] = None,
+      source: Option[ArticleSource] = None,
+      tags: Option[ArticleTags] = None
+  ): CreateArticle = CreateArticle(title, content, createdAt, language, authors, summary, url, source, tags)
 }

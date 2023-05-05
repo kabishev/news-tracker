@@ -15,7 +15,7 @@ export default function ArticlesPage({ data }: { data: Article[] }) {
         <title>Articles</title>
       </Head>
       <div className={styles.center}>
-        <Articles data={data?.map(x => x.title) ?? []} />
+        <Articles data={data ?? []} />
       </div>
     </>
   )

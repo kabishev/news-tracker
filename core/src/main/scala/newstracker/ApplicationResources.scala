@@ -27,7 +27,7 @@ object ApplicationResources {
       db            <- mongoDb(config.mongo)
       createArticle <- createArticle(config.kafka)
     } yield new ApplicationResources[F] {
-      override val mongo: MongoDatabase[F]                                                    = db
+      override val mongo: MongoDatabase[F]                                                  = db
       override val createArticleConsumer: KafkaConsumer[F, Unit, kafka.createArticle.Event] = createArticle
     }
   }

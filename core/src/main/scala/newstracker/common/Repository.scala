@@ -16,6 +16,11 @@ trait Repository[F[_]] {
     val Content  = "content"
     val CreateAt = "createdAt"
     val Language = "language"
+    val Authors  = "authors"
+    val Summary  = "summary"
+    val Url      = "url"
+    val Source   = "source"
+    val Tags     = "tags"
   }
 
   private def idEqFilter(name: String, id: String): Filter = Filter.eq(name, ObjectId(id))

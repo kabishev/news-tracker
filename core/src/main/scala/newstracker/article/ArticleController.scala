@@ -85,6 +85,10 @@ object ArticleController {
       content: NonEmptyString,
       createdAt: LocalDate,
       language: NonEmptyString,
+      authors: NonEmptyString,
+      summary: Option[String],
+      url: Option[String],
+      source: Option[String],
       tags: Option[List[String]]
   ) {
     def toDomain: CreateArticle = CreateArticle(
@@ -92,7 +96,11 @@ object ArticleController {
       ArticleContent(content.value),
       ArticleCreatedAt(createdAt),
       ArticleLanguage(language.value),
-      ArticleTags(tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty))
+      ArticleAuthors(authors.value),
+      summary.map(ArticleSummary(_)),
+      url.map(ArticleUrl(_)),
+      source.map(ArticleSource(_)),
+      tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).map(ArticleTags(_))
     )
   }
 
@@ -103,6 +111,10 @@ object ArticleController {
       content: NonEmptyString,
       createdAt: LocalDate,
       language: NonEmptyString,
+      authors: NonEmptyString,
+      summary: Option[String],
+      url: Option[String],
+      source: Option[String],
       tags: Option[List[String]]
   ) {
     def toDomain(id: String): Article =
@@ -112,7 +124,11 @@ object ArticleController {
         ArticleContent(content.value),
         ArticleCreatedAt(createdAt),
         ArticleLanguage(language.value),
-        ArticleTags(tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).getOrElse(Set.empty))
+        ArticleAuthors(authors.value),
+        summary.map(ArticleSummary(_)),
+        url.map(ArticleUrl(_)),
+        source.map(ArticleSource(_)),
+        tags.map(_.toSet[String].map(_.toLowerCase.replaceAll(" ", "-"))).map(ArticleTags(_))
       )
   }
 
@@ -122,7 +138,11 @@ object ArticleController {
       content: String,
       createdAt: LocalDate,
       language: String,
-      tags: Set[String]
+      authors: String,
+      summary: Option[String],
+      url: Option[String],
+      source: Option[String],
+      tags: Option[Set[String]]
   )
 
   object ArticleView {
@@ -132,7 +152,11 @@ object ArticleController {
       article.content.value,
       article.createdAt.value,
       article.language.value,
-      article.tags.value
+      article.authors.value,
+      article.summary.map(_.value),
+      article.url.map(_.value),
+      article.source.map(_.value),
+      article.tags.map(_.value)
     )
   }
 }

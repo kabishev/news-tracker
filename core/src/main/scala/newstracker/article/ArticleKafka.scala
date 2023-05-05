@@ -8,6 +8,7 @@ import fs2.kafka._
 import newstracker.article.domain._
 
 import scala.concurrent.duration._
+
 trait ArticleKafka[F[_]] {
   def stream: fs2.Stream[F, Unit]
 }
@@ -20,8 +21,7 @@ final private class LiveArticleKafka[F[_]: Async](
     createArticleConsumerStream
 
   private def createArticleConsumerStream: fs2.Stream[F, Unit] =
-    createArticleConsumer
-      .stream
+    createArticleConsumer.stream
       .mapAsync(16) { commitable =>
         service
           .create(commitable.record.value.toCreateArticle)
@@ -29,14 +29,18 @@ final private class LiveArticleKafka[F[_]: Async](
       }
       .through(commitBatchWithin(500, 10.seconds))
 
-  private implicit class CreateArticleEvent(event: newstracker.kafka.createArticle.Event) {
+  implicit private class CreateArticleEvent(event: newstracker.kafka.createArticle.Event) {
     def toCreateArticle: CreateArticle =
       CreateArticle(
         title = ArticleTitle(event.title),
         content = ArticleContent(event.content),
         createdAt = ArticleCreatedAt(event.createdAt),
         language = ArticleLanguage(event.language),
-        tags = ArticleTags(Set.empty)
+        authors = ArticleAuthors(event.authors),
+        summary = event.summary.map(ArticleSummary(_)),
+        url = event.url.map(ArticleUrl(_)),
+        source = event.source.map(ArticleSource(_)),
+        tags = None
       )
   }
 }
@@ -48,4 +52,3 @@ object ArticleKafka {
   ): F[ArticleKafka[F]] =
     Monad[F].pure(new LiveArticleKafka[F](service, createArticleConsumer))
 }
-
