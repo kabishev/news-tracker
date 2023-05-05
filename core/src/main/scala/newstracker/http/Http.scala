@@ -7,12 +7,18 @@ import org.http4s.server.Router
 import org.http4s.server.middleware._
 
 import newstracker.article.Articles
+import newstracker.health.Health
 
 import scala.concurrent.duration._
+import newstracker.health.Health
 
-final class HttpApi[F[_]: Async] private (private val articles: Articles[F]) {
+final class HttpApi[F[_]: Async] private (
+    private val health: Health[F],
+    private val articles: Articles[F]
+) {
   private val routes: HttpRoutes[F] = Router(
-    "/api" -> articles.controller.routes
+    "/api" -> articles.controller.routes,
+    "/"    -> health.controller.routes
   )
 
   private val middleware: HttpRoutes[F] => HttpRoutes[F] = ((http: HttpRoutes[F]) => AutoSlash(http))
@@ -26,5 +32,8 @@ final class HttpApi[F[_]: Async] private (private val articles: Articles[F]) {
 }
 
 object HttpApi {
-  def make[F[_]: Async](articles: Articles[F]): F[HttpApi[F]] = Async[F].pure(new HttpApi(articles))
+  def make[F[_]: Async](
+      health: Health[F],
+      articles: Articles[F]
+  ): F[HttpApi[F]] = Async[F].pure(new HttpApi(health, articles))
 }
