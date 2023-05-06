@@ -11,7 +11,7 @@ import newstracker.common.Service
 import newstracker.kafka.Producer
 
 trait ArticleService[F[_]] extends Service {
-  def getAll: F[List[Article]]
+  def getAll: Stream[F, Article]
   def get(id: ArticleId): F[Article]
   def create(article: CreateArticle): F[ArticleId]
   def update(article: Article): F[Unit]
@@ -26,7 +26,7 @@ final private class LiveArticleService[F[_]: Concurrent](
     _  <- createdArticleProducer.produceOne((), toCreatedArticleEvent(id, article))
   } yield id
 
-  override def getAll: F[List[Article]]          = repository.getAll
+  override def getAll: Stream[F, Article]        = repository.getAll
   override def get(id: ArticleId): F[Article]    = repository.get(id)
   override def update(article: Article): F[Unit] = repository.update(article)
   override def isValidId(id: String): Boolean    = repository.isValidId(id)

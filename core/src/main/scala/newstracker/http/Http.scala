@@ -1,6 +1,5 @@
 package newstracker.http
 
-import cats.Monad
 import cats.effect.Async
 import cats.syntax.semigroupk._
 import org.http4s._
@@ -10,6 +9,9 @@ import org.http4s.server.middleware._
 import org.http4s.server.websocket.WebSocketBuilder2
 
 import newstracker.article.Articles
+import newstracker.health.Health
+
+import scala.concurrent.duration._
 import newstracker.health.Health
 
 import scala.concurrent.duration._
@@ -40,5 +42,5 @@ object Http {
   def make[F[_]: Async](
       health: Health[F],
       articles: Articles[F]
-  ): F[Http[F]] = Monad[F].pure(new Http(health, articles))
+  ): F[Http[F]] = Async[F].pure(new Http(health, articles))
 }

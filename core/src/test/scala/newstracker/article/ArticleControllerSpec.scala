@@ -1,6 +1,7 @@
 package newstracker.article
 
 import cats.effect.IO
+import fs2.Stream
 import fs2.kafka.KafkaConsumer
 import org.http4s.implicits._
 import org.http4s.{Method, Status, Uri}
@@ -39,7 +40,7 @@ class ArticleControllerSpec extends ControllerSpec {
     "GET /articles" should {
       "return articles" in {
         val svc = mock[ArticleService[IO]]
-        when(svc.getAll).thenReturn(IO.pure(List(ArticleFixtures.article())))
+        when(svc.getAll).thenReturn(Stream(ArticleFixtures.article()))
 
         val consumer = mock[KafkaConsumer[IO, Unit, newstracker.kafka.createdArticle.Event]]
 

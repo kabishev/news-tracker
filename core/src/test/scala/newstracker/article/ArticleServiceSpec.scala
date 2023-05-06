@@ -2,6 +2,7 @@ package newstracker.article
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import fs2.Stream
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.matchers.must.Matchers
@@ -53,13 +54,13 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
 
     "get all articles" in {
       val repo = mock[ArticleRepository[IO]]
-      when(repo.getAll).thenReturn(IO.pure(List(ArticleFixtures.article())))
+      when(repo.getAll).thenReturn(Stream(ArticleFixtures.article()))
 
       val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
 
       val actual = for {
         svc <- ArticleService.make[IO](repo, producer)
-        res <- svc.getAll
+        res <- svc.getAll.compile.toList
       } yield res
 
       actual.unsafeToFuture().map { a =>

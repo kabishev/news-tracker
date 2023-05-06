@@ -10,7 +10,7 @@ import org.scalatest.wordspec.AnyWordSpec
 class ConsumerSpec extends AnyWordSpec with Matchers with EmbeddedKafka {
   val topic = "topictest"
   val baseConfig =
-    EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0, customBrokerProperties = Map("zookeeper.connection.timeout.ms" -> "30000"))
+    EmbeddedKafkaConfig(kafkaPort = 0, zooKeeperPort = 0, customBrokerProperties = Map("zookeeper.connection.timeout.ms" -> "60000"))
 
   "Consumer" should {
     "consume messages from a topic" in {
@@ -27,7 +27,7 @@ class ConsumerSpec extends AnyWordSpec with Matchers with EmbeddedKafka {
 
         val config = KafkaConfig(s"localhost:${kafkaConfig.kafkaPort}", "default")
         val receivedMessages = Consumer
-          .makeWithoutKey[IO, Event](config)
+          .make[IO, Unit, Event](config)
           .evalTap(_.subscribeTo(topic))
           .use(_.stream.evalMap(rec => IO.pure(rec.record.value)).take(3).compile.toList)
           .unsafeRunSync()

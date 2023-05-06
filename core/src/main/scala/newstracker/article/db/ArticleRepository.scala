@@ -2,6 +2,7 @@ package newstracker.article.db
 
 import cats.effect.Async
 import cats.implicits._
+import fs2.Stream
 import io.circe.generic.auto._
 import mongo4cats.circe._
 import mongo4cats.collection.MongoCollection
@@ -13,7 +14,7 @@ import newstracker.common.Repository
 
 trait ArticleRepository[F[_]] extends Repository[F] {
   def create(article: CreateArticle): F[ArticleId]
-  def getAll: F[List[Article]]
+  def getAll: Stream[F, Article]
   def get(id: ArticleId): F[Article]
   def update(article: Article): F[Unit]
 }
@@ -28,11 +29,11 @@ final private class LiveTransactionRepository[F[_]: Async](private val collectio
       .as(ArticleId(create._id.toHexString))
   }
 
-  override def getAll: F[List[Article]] =
+  override def getAll: Stream[F, Article] = // TODO: Needs to be refactored to better performance
     collection.find
       .sortByDesc(Field.CreateAt)
-      .all
-      .map(_.map(_.toDomain).toList)
+      .stream
+      .map(_.toDomain)
 
   override def get(id: ArticleId): F[Article] =
     collection

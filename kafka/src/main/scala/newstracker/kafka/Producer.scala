@@ -24,17 +24,18 @@ final private class LiveProducer[F[_]: Async, K, V](
     ProducerSettings(keySerializer = ks, valueSerializer = vs)
       .withBootstrapServers(config.servers)
 
+  private val kafkaPipe     = KafkaProducer.pipe[F, K, V, Unit](settings)
+
   override def pipe: Pipe[F, (K, V), Unit] =
     _.map { case (key, value) => ProducerRecord(topic, key, value) }
       .map(rec => ProducerRecords.one(rec))
-      .through(KafkaProducer.pipe(settings))
-      .evalMap(_ => Sync[F].pure(()))
+      .through(kafkaPipe)
+      .drain
 
   override def produceOne(key: K, value: V): F[Unit] =
     Stream
-      .emit(ProducerRecord(topic, key, value))
-      .map(rec => ProducerRecords.one(rec))
-      .through(KafkaProducer.pipe(settings))
+      .emit((key, value))
+      .through(pipe)
       .compile
       .drain
 }
@@ -44,5 +45,5 @@ object Producer {
       config: KafkaConfig,
       topic: String
   )(implicit kencoder: Encoder[K], vencoder: Encoder[V]): Resource[F, Producer[F, K, V]] =
-    Resource.pure[F, Producer[F, K, V]](new LiveProducer[F, K, V](config, topic))
+    Resource.eval(Async[F].delay(new LiveProducer[F, K, V](config, topic)))
 }
