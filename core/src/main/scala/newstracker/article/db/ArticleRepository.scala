@@ -19,7 +19,7 @@ trait ArticleRepository[F[_]] extends Repository[F] {
   def update(article: Article): F[Unit]
 }
 
-final private class LiveTransactionRepository[F[_]: Async](private val collection: MongoCollection[F, ArticleEntity])
+final private class LiveArticleRepository[F[_]: Async](private val collection: MongoCollection[F, ArticleEntity])
     extends ArticleRepository[F] {
 
   override def create(article: CreateArticle): F[ArticleId] = {
@@ -56,5 +56,5 @@ final private class LiveTransactionRepository[F[_]: Async](private val collectio
 object ArticleRepository {
   def make[F[_]: Async](db: MongoDatabase[F]): F[ArticleRepository[F]] =
     db.getCollectionWithCodec[ArticleEntity]("articles")
-      .map(new LiveTransactionRepository[F](_))
+      .map(new LiveArticleRepository[F](_))
 }
