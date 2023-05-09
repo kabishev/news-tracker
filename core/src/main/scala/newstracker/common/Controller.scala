@@ -30,7 +30,7 @@ trait Controller[F[_]] {
 
   implicit val applicativeF: Applicative[F] = Applicative[F]
 
-  def routes: HttpRoutes[F]
+  def routes: HttpRoutes[F]                                  = HttpRoutes.empty
   def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F] = _ => HttpRoutes.empty
 }
 
