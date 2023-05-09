@@ -20,7 +20,7 @@ final class Http[F[_]: Async] private (
     private val health: Health[F],
     private val articles: Articles[F]
 ) {
-  private def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F] = wsb => {
+  private def routes: WebSocketBuilder2[F] => HttpRoutes[F] = wsb => {
     val api = articles.controller.webSocketRoutes(wsb) <+> articles.controller.routes
     Router(
       "/api" -> api,
@@ -32,10 +32,15 @@ final class Http[F[_]: Async] private (
     .andThen((http: HttpRoutes[F]) => CORS.policy.withAllowOriginAll.withAllowCredentials(false).apply(http))
     .andThen((http: HttpRoutes[F]) => Timeout(60.seconds)(http))
 
-  private val loggers: HttpApp[F] => HttpApp[F] = { (http: HttpApp[F]) => RequestLogger.httpApp(true, true)(http) }
+  private val loggers: HttpApp[F] => HttpApp[F] = { (http: HttpApp[F]) =>
+    RequestLogger.httpApp(
+      logHeaders = true,
+      logBody = true
+    )(http)
+  }
     .andThen((http: HttpApp[F]) => ResponseLogger.httpApp(true, true)(http))
 
-  val app: WebSocketBuilder2[F] => HttpApp[F] = wsb => loggers(middleware(webSocketRoutes(wsb)).orNotFound)
+  val app: WebSocketBuilder2[F] => HttpApp[F] = wsb => loggers(middleware(routes(wsb)).orNotFound)
 }
 
 object Http {

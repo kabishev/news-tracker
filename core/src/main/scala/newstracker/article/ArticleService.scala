@@ -23,7 +23,7 @@ final private class LiveArticleService[F[_]: Concurrent](
 ) extends ArticleService[F] {
   override def create(article: CreateArticle): F[ArticleId] = for {
     id <- repository.create(article)
-    _  <- createdArticleProducer.produceOne((), toCreatedArticleEvent(id, article))
+    _  <- createdArticleProducer.produceOne(toCreatedArticleEvent(id, article))
   } yield id
 
   override def getAll: Stream[F, Article]        = repository.getAll

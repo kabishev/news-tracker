@@ -18,15 +18,14 @@ import newstracker.common.Controller
 
 import java.time.Instant
 
-final class HealthController[F[_]: Async](private val startupTime: Ref[F, Instant]) extends Controller[F] {
+final class HealthController[F[_]: Async](private val startupTime: Instant) extends Controller[F] {
 
   private val statusEndpoint: ServerEndpoint[Any, F] = infallibleEndpoint.get
     .in("health" / "status")
     .out(jsonBody[HealthController.AppStatus])
-    .serverLogicSuccess(req => startupTime.get.map(t => HealthController.AppStatus(t)))
+    .serverLogicSuccess(req => Async[F].pure(HealthController.AppStatus(startupTime)))
 
   override def routes: HttpRoutes[F]                                  = Http4sServerInterpreter[F]().toRoutes(statusEndpoint)
-  override def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F] = _ => HttpRoutes.empty
 }
 
 object HealthController {
@@ -35,6 +34,5 @@ object HealthController {
 
   def make[F[_]: Async]: F[Controller[F]] =
     Temporal[F].realTimeInstant
-      .flatMap(ts => Ref.of(ts))
       .map(ref => new HealthController[F](ref))
 }

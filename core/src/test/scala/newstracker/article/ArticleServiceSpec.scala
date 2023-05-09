@@ -30,7 +30,7 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
 
       actual.unsafeToFuture().map { a =>
         verify(repo).create(ArticleFixtures.create())
-        verify(producer).produceOne((), ArticleFixtures.createdArticleEvent())
+        verify(producer).produceOne(ArticleFixtures.createdArticleEvent())
         a mustBe ArticleFixtures.aid
       }
     }

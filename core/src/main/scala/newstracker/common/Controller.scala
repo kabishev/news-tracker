@@ -1,8 +1,8 @@
 package newstracker.common
 
-import cats.MonadThrow
 import cats.effect._
 import cats.implicits._
+import cats.{Applicative, MonadThrow}
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
 import org.http4s.server.websocket.WebSocketBuilder2
@@ -28,8 +28,10 @@ trait Controller[F[_]] {
         .handleError(e => Controller.mapError(e).asLeft[B])
   }
 
+  implicit val applicativeF: Applicative[F] = Applicative[F]
+
   def routes: HttpRoutes[F]
-  def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F]
+  def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F] = _ => HttpRoutes.empty
 }
 
 object Controller {

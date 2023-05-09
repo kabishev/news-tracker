@@ -41,6 +41,10 @@ final private class LiveProducer[F[_]: Async, K, V](
 }
 
 object Producer {
+  implicit class UnitProducerOps[F[_], V](private val producer: Producer[F, Unit, V]) extends AnyVal {
+    def produceOne(value: V): F[Unit] = producer.produceOne((), value)
+  }
+
   def make[F[_]: Async, K, V](
       config: KafkaConfig,
       topic: String
