@@ -9,9 +9,7 @@ import org.http4s.server.middleware._
 import org.http4s.server.websocket.WebSocketBuilder2
 
 import newstracker.article.Articles
-import newstracker.health.Health
 
-import scala.concurrent.duration._
 import newstracker.health.Health
 
 import scala.concurrent.duration._

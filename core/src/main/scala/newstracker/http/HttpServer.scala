@@ -2,7 +2,6 @@ package newstracker.http
 
 import cats.effect._
 import com.comcast.ip4s._
-import org.http4s.HttpApp
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server._
 import org.typelevel.log4cats.Logger

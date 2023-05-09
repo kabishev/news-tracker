@@ -5,7 +5,6 @@ import cats.implicits._
 import fs2.kafka._
 import io.circe.Decoder
 import io.circe.jawn.decodeByteArray
-import io.circe.parser._
 
 object Consumer {
   def make[F[_]: Async, K, V](

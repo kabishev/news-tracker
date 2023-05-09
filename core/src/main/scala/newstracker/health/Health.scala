@@ -2,7 +2,6 @@ package newstracker.health
 
 import cats.effect.Async
 import cats.syntax.functor._
-import org.http4s.HttpRoutes
 
 import newstracker.common.Controller
 

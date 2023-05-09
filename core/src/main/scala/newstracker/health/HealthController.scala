@@ -1,13 +1,9 @@
 package newstracker.health
 
-import cats.effect.{Async, Ref, Temporal}
-import cats.syntax.flatMap._
+import cats.effect.{Async, Temporal}
 import cats.syntax.functor._
-import io.circe.Codec
 import io.circe.generic.auto._
-import io.estatico.newtype.macros.newtype
 import org.http4s.HttpRoutes
-import org.http4s.server.websocket.WebSocketBuilder2
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
@@ -23,7 +19,7 @@ final class HealthController[F[_]: Async](private val startupTime: Instant) exte
   private val statusEndpoint: ServerEndpoint[Any, F] = infallibleEndpoint.get
     .in("health" / "status")
     .out(jsonBody[HealthController.AppStatus])
-    .serverLogicSuccess(req => Async[F].pure(HealthController.AppStatus(startupTime)))
+    .serverLogicSuccess(_ => Async[F].pure(HealthController.AppStatus(startupTime)))
 
   override def routes: HttpRoutes[F]                                  = Http4sServerInterpreter[F]().toRoutes(statusEndpoint)
 }

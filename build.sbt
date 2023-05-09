@@ -17,7 +17,21 @@ val common = Seq(
     "-Ymacro-annotations",
     "-feature",
     "-deprecation",
-    "-language:implicitConversions"
+    "-language:implicitConversions",
+    "-Wunused:imports",
+    "-Wunused:privates",
+    "-Wunused:synthetics",
+    "-Wunused:patvars",
+    "-Wunused:locals",
+    "-Wunused:explicits",
+    "-Wunused:implicits",
+    "-Wunused:linted",
+    "-Wvalue-discard",
+    "-Wdead-code",
+    "-Xlint:_",
+    "-Xlint:-byname-implicit",
+    "-Xlint:-missing-interpolator",
+    "-Xlint:-type-parameter-shadow"
   )
 )
 
