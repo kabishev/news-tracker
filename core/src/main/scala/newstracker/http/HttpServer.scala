@@ -10,7 +10,7 @@ import org.typelevel.log4cats.Logger
 import newstracker.config.HttpServerConfig
 
 trait HttpServer[F[_]] {
-  def ember(cfg: HttpServerConfig, httpApp: HttpApp[F]): Resource[F, Server]
+  def ember(cfg: HttpServerConfig, http: Http[F]): Resource[F, Server]
 }
 
 object HttpServer {
@@ -18,12 +18,12 @@ object HttpServer {
     private def showBanner(s: Server): F[Unit] =
       Logger[F].info(s"\n${defaults.Banner.mkString("\n")}\nServer started at ${s.address}")
 
-    override def ember(cfg: HttpServerConfig, httpApp: HttpApp[F]): Resource[F, Server] =
+    override def ember(cfg: HttpServerConfig, http: Http[F]): Resource[F, Server] =
       EmberServerBuilder
         .default[F]
         .withHostOption(Ipv4Address.fromString(cfg.host))
         .withPort(cfg.port)
-        .withHttpApp(httpApp)
+        .withHttpWebSocketApp(http.app)
         .build
         .evalTap(showBanner)
   }

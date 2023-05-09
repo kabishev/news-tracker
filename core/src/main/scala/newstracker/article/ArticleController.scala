@@ -2,25 +2,39 @@ package newstracker.article
 
 import cats.Monad
 import cats.effect.Async
+import cats.implicits._
 import eu.timepit.refined.types.string.NonEmptyString
+import fs2.Pipe
+import fs2.kafka._
+import io.circe.Codec
 import io.circe.generic.auto._
+import io.circe.generic.semiauto._
 import io.circe.refined._
 import org.http4s.HttpRoutes
+import sttp.capabilities.WebSockets
+import sttp.capabilities.fs2.Fs2Streams
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
-import sttp.tapir.server.http4s.Http4sServerInterpreter
+import sttp.tapir.server.ServerEndpoint.Full
+import sttp.tapir.server.http4s.{Http4sServerInterpreter, _}
+import sttp.ws.WebSocketFrame
 
 import newstracker.article.domain._
-import newstracker.common.Controller
+import newstracker.common.{Controller, ErrorResponse}
+
+import scala.concurrent.duration._
 
 import java.time.LocalDate
 
-final private class ArticleController[F[_]: Async](private val service: ArticleService[F]) extends Controller[F] {
+final private class ArticleController[F[_]: Async](
+    private val service: ArticleService[F],
+    private val createdArticleConsumer: KafkaConsumer[F, Unit, newstracker.kafka.createdArticle.Event]
+) extends Controller[F] {
   import ArticleController._
 
-  def routes: HttpRoutes[F] = Http4sServerInterpreter[F](Controller.serverOptions[F]).toRoutes(
+  override def routes: HttpRoutes[F] = Http4sServerInterpreter[F](Controller.serverOptions[F]).toRoutes(
     List(
       createArticle,
       getAllArticles,
@@ -28,6 +42,8 @@ final private class ArticleController[F[_]: Async](private val service: ArticleS
       updateArticle
     )
   )
+
+  override def webSocketRoutes = Http4sServerInterpreter[F](Controller.serverOptions[F]).toWebSocketRoutes(ws)
 
   private val basePath = "articles"
 
@@ -73,12 +89,29 @@ final private class ArticleController[F[_]: Async](private val service: ArticleS
         .update(req.toDomain(id.value))
         .voidResponse
     }
+
+  private def ws: Full[Unit, Unit, Unit, (StatusCode, ErrorResponse), Pipe[F, Unit, WsEvent], Fs2Streams[F] with WebSockets, F] =
+    Controller.publicEndpoint
+      .in(basePath)
+      .in("ws")
+      .out(webSocketBody[Unit, CodecFormat.Json, WsEvent, CodecFormat.Json](Fs2Streams[F]))
+      .serverLogic { _ =>
+        def wsServerLogic: Pipe[F, Unit, WsEvent] =
+          _ =>
+            createdArticleConsumer.stream
+              .map(ev => WsEvent.ArticleCreated(ArticleView.from(ev.record.value)))
+
+        wsServerLogic.asRight[(StatusCode, ErrorResponse)].pure[F]
+      }
 }
 
 object ArticleController {
 
-  def make[F[_]: Async](service: ArticleService[F]): F[Controller[F]] =
-    Monad[F].pure(new ArticleController[F](service))
+  def make[F[_]: Async](
+      service: ArticleService[F],
+      createdArticleConsumer: KafkaConsumer[F, Unit, newstracker.kafka.createdArticle.Event]
+  ): F[Controller[F]] =
+    Monad[F].pure(new ArticleController[F](service, createdArticleConsumer))
 
   final case class CreateArticleRequest(
       title: NonEmptyString,
@@ -158,5 +191,38 @@ object ArticleController {
       article.source.map(_.value),
       article.tags.map(_.value)
     )
+
+    def from(event: newstracker.kafka.createdArticle.Event): ArticleView = ArticleView(
+      event.id,
+      event.title,
+      event.content,
+      event.createdAt,
+      event.language,
+      event.authors,
+      event.summary,
+      event.url,
+      event.source,
+      None
+    )
+  }
+
+  implicit private class CreatedArticleEvent(event: newstracker.kafka.createdArticle.Event) {
+    def toDomain: CreateArticle =
+      CreateArticle(
+        title = ArticleTitle(event.title),
+        content = ArticleContent(event.content),
+        createdAt = ArticleCreatedAt(event.createdAt),
+        language = ArticleLanguage(event.language),
+        authors = ArticleAuthors(event.authors),
+        summary = event.summary.map(ArticleSummary(_)),
+        url = event.url.map(ArticleUrl(_)),
+        source = event.source.map(ArticleSource(_)),
+        tags = None
+      )
+  }
+
+  sealed trait WsEvent
+  object WsEvent {
+    final case class ArticleCreated(article: ArticleView) extends WsEvent
   }
 }

@@ -7,6 +7,7 @@ import fs2.kafka._
 import io.circe.Encoder
 
 trait Producer[F[_], K, V] {
+  def produceOne(key: K, value: V): F[Unit]
   def pipe: Pipe[F, (K, V), Unit]
 }
 
@@ -23,16 +24,27 @@ final private class LiveProducer[F[_]: Async, K, V](
     ProducerSettings(keySerializer = ks, valueSerializer = vs)
       .withBootstrapServers(config.servers)
 
-  private val kafkaPipe = KafkaProducer.pipe[F, K, V, Unit](settings)
+  private val kafkaPipe     = KafkaProducer.pipe[F, K, V, Unit](settings)
 
   override def pipe: Pipe[F, (K, V), Unit] =
     _.map { case (key, value) => ProducerRecord(topic, key, value) }
       .map(rec => ProducerRecords.one(rec))
       .through(kafkaPipe)
       .drain
+
+  override def produceOne(key: K, value: V): F[Unit] =
+    Stream
+      .emit((key, value))
+      .through(pipe)
+      .compile
+      .drain
 }
 
 object Producer {
+  implicit class UnitProducerOps[F[_], V](private val producer: Producer[F, Unit, V]) extends AnyVal {
+    def produceOne(value: V): F[Unit] = producer.produceOne((), value)
+  }
+
   def make[F[_]: Async, K, V](
       config: KafkaConfig,
       topic: String

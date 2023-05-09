@@ -1,10 +1,11 @@
 package newstracker.common
 
-import cats.MonadThrow
 import cats.effect._
 import cats.implicits._
+import cats.{Applicative, MonadThrow}
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
+import org.http4s.server.websocket.WebSocketBuilder2
 import sttp.model.StatusCode
 import sttp.tapir.DecodeResult.Error.{JsonDecodeException, _}
 import sttp.tapir._
@@ -27,7 +28,10 @@ trait Controller[F[_]] {
         .handleError(e => Controller.mapError(e).asLeft[B])
   }
 
-  def routes: HttpRoutes[F]
+  implicit val applicativeF: Applicative[F] = Applicative[F]
+
+  def routes: HttpRoutes[F]                                  = HttpRoutes.empty
+  def webSocketRoutes: WebSocketBuilder2[F] => HttpRoutes[F] = _ => HttpRoutes.empty
 }
 
 object Controller {

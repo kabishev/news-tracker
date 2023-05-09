@@ -13,7 +13,7 @@ class HealthControllerSpec extends ControllerSpec {
 
   "A HealthController" should {
     "return status" in {
-      val controller = Ref.of[IO, Instant](ts).map(t => new HealthController[IO](t))
+      val controller = IO(new HealthController[IO](ts))
 
       val request  = Request[IO](uri = uri"/health/status", method = Method.GET)
       val response = controller.flatMap(_.routes.orNotFound.run(request))

@@ -7,7 +7,7 @@ import org.typelevel.log4cats.slf4j.Slf4jLogger
 import newstracker.article.Articles
 import newstracker.config.ApplicationConfig
 import newstracker.health.Health
-import newstracker.http.{HttpApi, HttpServer}
+import newstracker.http._
 
 object Application extends IOApp.Simple {
   implicit val logger = Slf4jLogger.getLogger[IO]
@@ -18,8 +18,8 @@ object Application extends IOApp.Simple {
       for {
         health   <- Health.make[IO]
         articles <- Articles.make[IO](resources)
-        http     <- HttpApi.make[IO](health, articles)
-        server = HttpServer[IO].ember(config.httpServer, http.app).use(_ => IO.never)
+        http     <- Http.make[IO](health, articles)
+        server = HttpServer[IO].ember(config.httpServer, http).use(_ => IO.never)
         kafka  = articles.kafka
         _ <- Stream.eval(server).concurrently(kafka.stream).compile.drain
       } yield ()

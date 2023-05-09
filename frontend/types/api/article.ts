@@ -5,7 +5,15 @@ export interface Article {
   createdAt: string;
   language: string;
   authors: string;
-  summary: string;
-  url: string;
-  source: string;
+  summary: string | null;
+  url: string | null;
+  source: string | null;
+}
+
+export type ArticleCreatedEvent = {
+  article: Article;
+}
+
+export type ArticleWsEvent = {
+  ArticleCreated?: ArticleCreatedEvent;
 }
