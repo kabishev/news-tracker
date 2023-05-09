@@ -1,6 +1,6 @@
 package newstracker.health
 
-import cats.effect.{IO, Ref}
+import cats.effect.IO
 import org.http4s._
 import org.http4s.implicits._
 
@@ -18,7 +18,7 @@ class HealthControllerSpec extends ControllerSpec {
       val request  = Request[IO](uri = uri"/health/status", method = Method.GET)
       val response = controller.flatMap(_.routes.orNotFound.run(request))
 
-      response mustHaveStatus (Status.Ok, Some(s"""{"startupTime":"$ts"}"""))
+      response.mustHaveStatus(Status.Ok, Some(s"""{"startupTime":"$ts"}"""))
     }
   }
 }

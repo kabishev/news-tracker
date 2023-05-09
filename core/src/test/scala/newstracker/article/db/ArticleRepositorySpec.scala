@@ -15,15 +15,13 @@ import newstracker.{MongoOps, article}
 
 import scala.concurrent.Future
 
-import java.time.LocalDate
-
 class ArticleRepositorySpec extends AsyncWordSpec with Matchers with EmbeddedMongo with MongoOps {
   override protected val mongoPort: Int = 12348
 
   private def fixMacOsXPlatform(): Unit = {
     val os: String = System.getProperty("os.name")
     if (os.startsWith("Mac OS X")) {
-      System.setProperty("de.flapdoodle.os.override", "OS_X|X86_64")
+      val _ = System.setProperty("de.flapdoodle.os.override", "OS_X|X86_64")
     }
   }
 

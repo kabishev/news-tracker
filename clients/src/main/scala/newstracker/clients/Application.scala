@@ -1,7 +1,6 @@
 package newstracker.clients
 
 import cats.effect.{IO, IOApp}
-import fs2.Stream
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import newstracker.clients

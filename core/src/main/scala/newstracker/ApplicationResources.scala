@@ -6,7 +6,7 @@ import mongo4cats.client.MongoClient
 import mongo4cats.database.MongoDatabase
 
 import newstracker.config._
-import newstracker.kafka.{KafkaConfig, Producer}
+import newstracker.kafka.Producer
 
 sealed trait ApplicationResources[F[_]] {
   val mongo: MongoDatabase[F]

@@ -6,9 +6,7 @@ import cats.implicits._
 import eu.timepit.refined.types.string.NonEmptyString
 import fs2.Pipe
 import fs2.kafka._
-import io.circe.Codec
 import io.circe.generic.auto._
-import io.circe.generic.semiauto._
 import io.circe.refined._
 import org.http4s.HttpRoutes
 import sttp.capabilities.WebSockets
@@ -18,13 +16,10 @@ import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
 import sttp.tapir.server.ServerEndpoint.Full
-import sttp.tapir.server.http4s.{Http4sServerInterpreter, _}
-import sttp.ws.WebSocketFrame
+import sttp.tapir.server.http4s.Http4sServerInterpreter
 
 import newstracker.article.domain._
 import newstracker.common.{Controller, ErrorResponse}
-
-import scala.concurrent.duration._
 
 import java.time.LocalDate
 
@@ -204,21 +199,6 @@ object ArticleController {
       event.source,
       None
     )
-  }
-
-  implicit private class CreatedArticleEvent(event: newstracker.kafka.createdArticle.Event) {
-    def toDomain: CreateArticle =
-      CreateArticle(
-        title = ArticleTitle(event.title),
-        content = ArticleContent(event.content),
-        createdAt = ArticleCreatedAt(event.createdAt),
-        language = ArticleLanguage(event.language),
-        authors = ArticleAuthors(event.authors),
-        summary = event.summary.map(ArticleSummary(_)),
-        url = event.url.map(ArticleUrl(_)),
-        source = event.source.map(ArticleSource(_)),
-        tags = None
-      )
   }
 
   sealed trait WsEvent

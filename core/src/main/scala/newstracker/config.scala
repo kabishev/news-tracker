@@ -6,8 +6,6 @@ import pureconfig.generic.auto._
 
 import newstracker.kafka.KafkaConfig
 import com.comcast.ip4s.Port
-import com.typesafe.config.Config
-import pureconfig.error.ConfigReaderFailures
 import pureconfig.error.CannotConvert
 
 object config {

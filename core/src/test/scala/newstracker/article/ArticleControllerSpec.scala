@@ -32,7 +32,7 @@ class ArticleControllerSpec extends ControllerSpec {
         )
         val res = ArticleController.make[IO](svc, consumer).flatMap(_.routes.orNotFound.run(req))
 
-        res mustHaveStatus (Status.Created, Some(s"""{"id":"${ArticleFixtures.aid}"}"""))
+        res.mustHaveStatus(Status.Created, Some(s"""{"id":"${ArticleFixtures.aid}"}"""))
         verify(svc).create(ArticleFixtures.create())
       }
     }
@@ -50,7 +50,7 @@ class ArticleControllerSpec extends ControllerSpec {
         val expected =
           s"""[{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","authors":"Ivan Ivanov","summary":null,"url":null,"source":null,"tags":null}]"""
 
-        res mustHaveStatus (Status.Ok, Some(expected))
+        res.mustHaveStatus(Status.Ok, Some(expected))
         verify(svc).getAll
       }
     }
@@ -68,7 +68,7 @@ class ArticleControllerSpec extends ControllerSpec {
 
         val expected =
           s"""{"id":"${ArticleFixtures.aid}","title":"${ArticleFixtures.title}","content":"content","createdAt":"${ArticleFixtures.createdAt}","language":"en","tags":[],"authors":"Ivan Ivanov","summary":null,"url":null,"source":null,"tags":null}"""
-        res mustHaveStatus (Status.Ok, Some(expected))
+        res.mustHaveStatus(Status.Ok, Some(expected))
         verify(svc).get(ArticleFixtures.aid)
       }
 
@@ -81,7 +81,7 @@ class ArticleControllerSpec extends ControllerSpec {
         val req = request(Uri.unsafeFromString(s"/articles/invalid"), method = Method.GET)
         val res = ArticleController.make[IO](svc, consumer).flatMap(_.routes.orNotFound.run(req))
 
-        res mustHaveStatus (Status.UnprocessableEntity, Some("""{"message":"Invalid representation of an id: invalid"}"""))
+        res.mustHaveStatus(Status.UnprocessableEntity, Some("""{"message":"Invalid representation of an id: invalid"}"""))
         verify(svc).isValidId("invalid")
         verifyNoMoreInteractions(svc);
       }
@@ -106,7 +106,7 @@ class ArticleControllerSpec extends ControllerSpec {
         )
         val res = ArticleController.make[IO](svc, consumer).flatMap(_.routes.orNotFound.run(req))
 
-        res mustHaveStatus (Status.NoContent, None)
+        res.mustHaveStatus(Status.NoContent, None)
         verify(svc).update(ArticleFixtures.article())
       }
 
@@ -126,7 +126,7 @@ class ArticleControllerSpec extends ControllerSpec {
         val expected =
           """{"message":"Field title cannot be empty, Field content cannot be empty, Missing required field createdAt, Missing required field language, Missing required field authors"}"""
 
-        res mustHaveStatus (Status.UnprocessableEntity, Some(expected))
+        res.mustHaveStatus(Status.UnprocessableEntity, Some(expected))
         verify(svc, times(2)).isValidId(any[String])
         verifyNoMoreInteractions(svc);
       }
@@ -150,7 +150,7 @@ class ArticleControllerSpec extends ControllerSpec {
         val res = ArticleController.make[IO](svc, consumer).flatMap(_.routes.orNotFound.run(req))
 
         val resBody = s"""{"message":"Article with id ${ArticleFixtures.aid} does not exist"}"""
-        res mustHaveStatus (Status.NotFound, Some(resBody))
+        res.mustHaveStatus(Status.NotFound, Some(resBody))
         verify(svc).update(ArticleFixtures.article())
       }
     }

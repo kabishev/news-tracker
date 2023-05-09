@@ -12,7 +12,7 @@ trait ArticleService[F[_]] {
   def getAll: Stream[F, ArticleUuid]
 }
 
-final private class LiveArticleService[F[_]: Async](private val repository: ArticleRepository[F]) extends ArticleService[F] {
+final private class LiveArticleService[F[_]](private val repository: ArticleRepository[F]) extends ArticleService[F] {
   override def create(articles: NonEmptyList[CreateArticle]): F[Unit] = repository.create(articles)
   override def getAll: Stream[F, ArticleUuid] =
     repository.getAll.map(_.uuid)

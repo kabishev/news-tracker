@@ -5,20 +5,16 @@ import cats.effect._
 import cats.implicits._
 import fs2.Stream
 import org.typelevel.log4cats.Logger
-import sttp.client3._
-import sttp.client3.circe.asJson
-import sttp.model._
 
 import newstracker.clients.ApplicationResources
 import newstracker.clients.common.SearchPipeline
 import newstracker.clients.yahoo.db.ArticleRepository
 import newstracker.clients.yahoo.domain._
-import newstracker.clients.yahoo.responses._
 import newstracker.kafka._
 
 import java.time.LocalDate
 
-final private[yahoo] class LiveYahooPipeline[F[_]: Async: Concurrent: Logger](
+final private[yahoo] class LiveYahooPipeline[F[_]: Async: Logger](
     config: YahooConfig,
     client: YahooClient[F],
     service: ArticleService[F],

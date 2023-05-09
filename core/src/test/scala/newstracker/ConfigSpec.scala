@@ -6,7 +6,6 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 
 import config._
-import com.comcast.ip4s.Port
 
 class ConfigSpec extends AsyncWordSpec with Matchers {
 
