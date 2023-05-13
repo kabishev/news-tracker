@@ -1,26 +1,44 @@
 ### This file requires the REST Client VS Code extension
 ### https://marketplace.visualstudio.com/items?itemName=humao.rest-client
 
-@endpoint = http://localhost:8080/api/articles
+@endpoint = http://localhost:8080/api
 
 ### Show all
-GET {{endpoint}}
+GET {{endpoint}}/articles
 
 
 ### Show by id
-GET {{endpoint}}/bd451b06-79d1-4422-8473-5c3ce3de4511
+GET {{endpoint}}/articles/6455d7cd41b8b40c25b9a713
 
 ### Create
-POST {{endpoint}}
+POST {{endpoint}}/articles
 Content-Type: application/json
 
-{
-  "title": "title #1",
-  "content": "text #1",
-  "createdAt": "2022-03-22",
-  "language": "en",
-  "authors": "author #1"
-}
+{"title": "title #1","content": "Hello World!","createdAt": "2023-05-13","language": "en","authors": "author #1"}
 
 ### Health status
 GET http://localhost:8080/health/status
+
+### get translation
+GET {{endpoint}}/translations/645f06c3becd3d1b4306d7b2
+
+### create translation
+POST {{endpoint}}/translations/645f06c3becd3d1b4306d7b2/localizations/uk
+
+
+### DeepL
+GET https://api-free.deepl.com/v2/usage
+Authorization: DeepL-Auth-Key 
+
+
+### DeepL translate
+POST https://api-free.deepl.com/v2/translate
+Authorization: DeepL-Auth-Key 
+Content-Type: application/json
+
+{
+  "text": ["Hello World!", "The sun is shining."],
+  "source_lang": "EN",
+  "target_lang": "ru",
+  "tag_handling": "html"
+}

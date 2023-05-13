@@ -9,6 +9,7 @@ import newstracker.article.db.ArticleRepository
 import newstracker.article.domain._
 import newstracker.common.Service
 import newstracker.kafka.Producer
+import newstracker.kafka.event._
 
 trait ArticleService[F[_]] extends Service {
   def getAll: Stream[F, Article]
@@ -19,7 +20,7 @@ trait ArticleService[F[_]] extends Service {
 
 final private class LiveArticleService[F[_]: Concurrent](
     private val repository: ArticleRepository[F],
-    private val createdArticleProducer: Producer[F, Unit, newstracker.kafka.createdArticle.Event]
+    private val createdArticleProducer: Producer[F, Unit, CreatedArticleEvent]
 ) extends ArticleService[F] {
   override def create(article: CreateArticle): F[ArticleId] = for {
     id <- repository.create(article)
@@ -31,8 +32,8 @@ final private class LiveArticleService[F[_]: Concurrent](
   override def update(article: Article): F[Unit] = repository.update(article)
   override def isValidId(id: String): Boolean    = repository.isValidId(id)
 
-  private def toCreatedArticleEvent(id: ArticleId, createArticle: CreateArticle): newstracker.kafka.createdArticle.Event =
-    newstracker.kafka.createdArticle.Event(
+  private def toCreatedArticleEvent(id: ArticleId, createArticle: CreateArticle): CreatedArticleEvent =
+    CreatedArticleEvent(
       id = id.value,
       title = createArticle.title.value,
       content = createArticle.content.value,
@@ -48,7 +49,7 @@ final private class LiveArticleService[F[_]: Concurrent](
 object ArticleService {
   def make[F[_]: Async](
       repository: ArticleRepository[F],
-      createdArticleProducer: Producer[F, Unit, newstracker.kafka.createdArticle.Event]
+      createdArticleProducer: Producer[F, Unit, CreatedArticleEvent]
   ): F[ArticleService[F]] =
     Async[F].pure(new LiveArticleService[F](repository, createdArticleProducer))
 }

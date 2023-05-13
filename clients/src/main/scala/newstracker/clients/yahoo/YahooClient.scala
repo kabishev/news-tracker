@@ -1,9 +1,7 @@
 package newstracker.clients.yahoo
 
-import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
-import fs2.Stream
 import org.typelevel.log4cats.Logger
 import retry.RetryPolicies._
 import retry._
@@ -12,22 +10,17 @@ import sttp.client3.circe.asJson
 import sttp.model._
 
 import newstracker.clients.ApplicationResources
-import newstracker.clients.common.SearchPipeline
-import newstracker.clients.yahoo.db.ArticleRepository
 import newstracker.clients.yahoo.domain._
 import newstracker.clients.yahoo.responses._
-import newstracker.kafka._
 
 import scala.concurrent.duration._
-
-import java.time.LocalDate
 
 trait YahooClient[F[_]] {
   def getNewArticleIds(): F[List[ArticleUuid]]
   def getArticleDetails(articleId: ArticleUuid): F[ArticleDetails]
 }
 
-final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Concurrent: Logger](
+final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Logger](
     config: YahooConfig,
     backend: SttpBackend[F, Any]
 ) extends YahooClient[F] {

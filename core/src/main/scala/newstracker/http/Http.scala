@@ -9,20 +9,21 @@ import org.http4s.server.middleware._
 import org.http4s.server.websocket.WebSocketBuilder2
 
 import newstracker.article.Articles
-
 import newstracker.health.Health
+import newstracker.translation.Translations
 
 import scala.concurrent.duration._
 
 final class Http[F[_]: Async] private (
     private val health: Health[F],
-    private val articles: Articles[F]
+    private val articles: Articles[F],
+    private val translations: Translations[F]
 ) {
   private def routes: WebSocketBuilder2[F] => HttpRoutes[F] = wsb => {
-    val api = articles.controller.webSocketRoutes(wsb) <+> articles.controller.routes
+    val api = articles.controller.routes(wsb) <+> translations.controller.routes(wsb)
     Router(
       "/api" -> api,
-      "/"    -> health.controller.routes
+      "/"    -> health.controller.routes(wsb)
     )
   }
 
@@ -44,6 +45,7 @@ final class Http[F[_]: Async] private (
 object Http {
   def make[F[_]: Async](
       health: Health[F],
-      articles: Articles[F]
-  ): F[Http[F]] = Async[F].pure(new Http(health, articles))
+      articles: Articles[F],
+      translations: Translations[F]
+  ): F[Http[F]] = Async[F].pure(new Http(health, articles, translations))
 }

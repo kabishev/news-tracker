@@ -4,6 +4,7 @@ import mongo4cats.bson.syntax._
 import mongo4cats.bson.{Document, ObjectId}
 
 import newstracker.article.domain.ArticleId
+import newstracker.translation.domain.{Localization, TranslationId}
 
 import java.time.{Instant, LocalDate}
 
@@ -24,5 +25,20 @@ trait MongoOps {
     "language"  -> language.toBson,
     "authors"   -> authors.toBson,
     "tags"      -> tags.toBson
+  )
+
+  def translationDocument(
+      id: TranslationId,
+      localizations: List[Localization]
+  ): Document = Document(
+    "_id" -> ObjectId(id.value).toBson,
+    "localizations" -> localizations
+      .map(l =>
+        Document(
+          "language" -> l.language.value.toBson,
+          "content"  -> l.content.value.toBson
+        )
+      )
+      .toBson
   )
 }

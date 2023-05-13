@@ -14,26 +14,4 @@ package object domain {
   @newtype case class ArticleSummary(value: String)
   @newtype case class ArticleUrl(value: String)
   @newtype case class ArticleSource(value: String)
-
-  final case class Article(
-      id: ArticleId,
-      uuid: ArticleUuid,
-      createdAt: ArticleCreatedAt
-  )
-
-  final case class CreateArticle(
-      uuid: ArticleUuid,
-      createdAt: ArticleCreatedAt
-  )
-
-  final case class ArticleDetails(
-      uuid: ArticleUuid,
-      authors: ArticleAuthors,
-      title: ArticleTitle,
-      createdAt: ArticleCreatedAt,
-      content: ArticleContent,
-      summary: ArticleSummary,
-      url: ArticleUrl,
-      source: ArticleSource
-  )
 }

@@ -14,8 +14,8 @@ object Articles {
   def make[F[_]: Async](resources: ApplicationResources[F]): F[Articles[F]] =
     for {
       repo  <- ArticleRepository.make[F](resources.mongo)
-      svc   <- ArticleService.make[F](repo, resources.createdArticleProducer)
-      ctrl  <- ArticleController.make[F](svc, resources.createdArticleConsumer)
-      kafka <- ArticleKafka.make[F](svc, resources.createArticleConsumer)
+      svc   <- ArticleService.make[F](repo, resources.createdArticleEventProducer)
+      ctrl  <- ArticleController.make[F](svc, resources.createdArticleEventConsumer)
+      kafka <- ArticleKafka.make[F](svc, resources.createArticleCommandConsumer)
     } yield new Articles[F](ctrl, kafka)
 }

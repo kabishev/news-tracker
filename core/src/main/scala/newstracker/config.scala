@@ -1,18 +1,23 @@
 package newstracker
 
 import cats.effect.kernel.Sync
+import com.comcast.ip4s.Port
 import pureconfig._
+import pureconfig.error.CannotConvert
 import pureconfig.generic.auto._
 
 import newstracker.kafka.KafkaConfig
-import com.comcast.ip4s.Port
-import pureconfig.error.CannotConvert
+import newstracker.translation.deepl.DeeplConfig
+
+import scala.concurrent.duration.FiniteDuration
 
 object config {
   final case class ApplicationConfig(
       mongo: MongoConfig,
       httpServer: HttpServerConfig,
-      kafka: KafkaConfig
+      client: ClientConfig,
+      kafka: KafkaConfig,
+      deepl: DeeplConfig
   )
 
   final case class MongoConfig(
@@ -23,6 +28,10 @@ object config {
   final case class HttpServerConfig(
       host: String,
       port: Port
+  )
+
+  final case class ClientConfig(
+      connectTimeout: FiniteDuration
   )
 
   implicit val portReader: ConfigReader[Port] = ConfigReader.fromString { str =>

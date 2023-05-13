@@ -1,1 +1,1 @@
-docker exec -it kafka /bin/kafka-console-producer --bootstrap-server localhost:9092 --topic create-article
+docker exec -it kafka /bin/kafka-console-producer --bootstrap-server localhost:9092 --topic create-article-command

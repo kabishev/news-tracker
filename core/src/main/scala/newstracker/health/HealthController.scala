@@ -3,7 +3,6 @@ package newstracker.health
 import cats.effect.{Async, Temporal}
 import cats.syntax.functor._
 import io.circe.generic.auto._
-import org.http4s.HttpRoutes
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
@@ -21,7 +20,7 @@ final class HealthController[F[_]: Async](private val startupTime: Instant) exte
     .out(jsonBody[HealthController.AppStatus])
     .serverLogicSuccess(_ => Async[F].pure(HealthController.AppStatus(startupTime)))
 
-  override def routes: HttpRoutes[F]                                  = Http4sServerInterpreter[F]().toRoutes(statusEndpoint)
+  override def routes = _ => Http4sServerInterpreter[F]().toRoutes(statusEndpoint)
 }
 
 object HealthController {
