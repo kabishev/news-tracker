@@ -25,25 +25,26 @@ const lable = (code: string, name: string, marked: boolean) => {
 }
 
 type LocalizationsProps = {
+  selectedCode?: string,
   localizations: Localization[]
   onTabChanged: (code: string) => void
 }
 
-export const Localizations: React.FC<LocalizationsProps> = ({ localizations, onTabChanged }) => {
+export const Localizations: React.FC<LocalizationsProps> = ({ selectedCode, localizations, onTabChanged }) => {
   const [value, setValue] = React.useState(0)
   const languages = useAvailableLanguages()
   const translatedCodes = localizations.map(({ language }) => language.toLowerCase())
   const marked = (language: Language) => translatedCodes.includes(language.code.toLowerCase())
 
   const handleChange = (_: React.SyntheticEvent, value: number) => {
-    console.log(`Tab changed to ${value}`)
     setValue(value)
     onTabChanged(languages[value].code)
   }
 
   React.useEffect(() => {
-    setValue(0)
-  }, [localizations])
+    const index = languages.findIndex(({ code }) => code.toLowerCase() === selectedCode?.toLowerCase())
+    setValue(index > -1 ? index : 0)
+  }, [selectedCode, languages])
 
   return (
     <>

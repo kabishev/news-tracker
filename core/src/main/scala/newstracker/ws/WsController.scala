@@ -19,9 +19,9 @@ import newstracker.common.{Controller, ErrorResponse}
 import newstracker.kafka.event._
 
 final private class WsController[F[_]: Async](
-    private val createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent]
+    private val createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
+    private val translatedEventConsumer: KafkaConsumer[F, Unit, TranslatedEvent]
 ) extends Controller[F] {
-  import WsController._
 
   override def routes =
     Http4sServerInterpreter[F](Controller.serverOptions[F]).toWebSocketRoutes(ws)
@@ -30,10 +30,14 @@ final private class WsController[F[_]: Async](
     Controller.publicEndpoint
       .out(webSocketBody[Unit, CodecFormat.Json, WsEvent, CodecFormat.Json](Fs2Streams[F]))
       .serverLogic { _ =>
+        val createdArticleEventConsumerStream = createdArticleEventConsumer.stream
+          .map(ev => WsEvent.ArticleCreated.from(ev.record.value))
+
+        val translatedEventConsumerStream = translatedEventConsumer.stream
+          .map(ev => WsEvent.ArticleTranslated.from(ev.record.value))
+
         def wsServerLogic: Pipe[F, Unit, WsEvent] =
-          _ =>
-            createdArticleEventConsumer.stream
-              .map(ev => WsEvent.ArticleCreated(ArticleView.from(ev.record.value)))
+          _ => createdArticleEventConsumerStream.merge(translatedEventConsumerStream)
 
         wsServerLogic.asRight[(StatusCode, ErrorResponse)].pure[F]
       }
@@ -42,18 +46,8 @@ final private class WsController[F[_]: Async](
 object WsController {
 
   def make[F[_]: Async](
-      createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent]
+      createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
+      translatedEventConsumer: KafkaConsumer[F, Unit, TranslatedEvent]
   ): F[Controller[F]] =
-    Monad[F].pure(new WsController[F](createdArticleEventConsumer))
-
-  final case class ArticleView(id: String)
-
-  object ArticleView {
-    def from(event: CreatedArticleEvent): ArticleView = ArticleView(event.id)
-  }
-
-  sealed trait WsEvent
-  object WsEvent {
-    final case class ArticleCreated(article: ArticleView) extends WsEvent
-  }
+    Monad[F].pure(new WsController[F](createdArticleEventConsumer, translatedEventConsumer))
 }

@@ -23,6 +23,7 @@ sealed trait ApplicationResources[F[_]] {
   val translateCommandConsumer: KafkaConsumer[F, Unit, command.TranslateCommand]
 
   val translatedEventProducer: Producer[F, Unit, event.TranslatedEvent]
+  val translatedEventConsumer: KafkaConsumer[F, Unit, event.TranslatedEvent]
 }
 
 object ApplicationResources {
@@ -45,6 +46,7 @@ object ApplicationResources {
       translateProducer      <- command.TranslateCommand.makeProducer[F](config.kafka)
       translateConsumer      <- command.TranslateCommand.makeConsumer[F](config.kafka)
       translatedProducer     <- event.TranslatedEvent.makeProducer[F](config.kafka)
+      translatedConsumer     <- event.TranslatedEvent.makeConsumer[F](config.kafka)
     } yield new ApplicationResources[F] {
       override val mongo: MongoDatabase[F]                                                            = db
       override val httpClientBackend: SttpBackend[F, Any]                                             = backend
@@ -54,6 +56,7 @@ object ApplicationResources {
       override val translateCommandProducer: Producer[F, Unit, command.TranslateCommand]              = translateProducer
       override val translateCommandConsumer: KafkaConsumer[F, Unit, command.TranslateCommand]         = translateConsumer
       override val translatedEventProducer: Producer[F, Unit, event.TranslatedEvent]                  = translatedProducer
+      override val translatedEventConsumer: KafkaConsumer[F, Unit, event.TranslatedEvent]             = translatedConsumer
     }
   }
 }
