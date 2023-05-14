@@ -2,9 +2,11 @@ import React, { useEffect } from 'react'
 import CircularProgress from '@mui/material/CircularProgress'
 import Head from 'next/head'
 
-import Articles from '@/components/Articles'
+import ArticlesComponent from '@/components/Articles'
+import { AvailableLanguagesContext } from '@/contexts/AvailableLanguagesContext'
 import styles from '@/styles/Home.module.css'
 import { Article, ArticleWsEvent } from '@/types/api/article'
+import { availableLanguages } from '@/types/languages'
 
 export default function ArticlesPage() {
   const [articles, setArticles] = React.useState<Article[]>([])
@@ -41,7 +43,7 @@ export default function ArticlesPage() {
   useEffect(() => { fetchArticles() }, [])
 
   return (
-    <>
+    <AvailableLanguagesContext.Provider value={availableLanguages}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
@@ -50,9 +52,9 @@ export default function ArticlesPage() {
       <div className={styles.center}>
         {isLoading
           ? <CircularProgress />
-          : <Articles data={articles ?? []} />
+          : <ArticlesComponent articles={articles ?? []} />
         }
       </div>
-    </>
+    </AvailableLanguagesContext.Provider>
   )
 }

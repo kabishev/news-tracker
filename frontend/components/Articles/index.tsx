@@ -1,3 +1,3 @@
-import { ArticleList } from './ArticleList'
+import { ArticlesComponent } from './ArticlesComponent'
 
-export default ArticleList;
+export default ArticlesComponent;
