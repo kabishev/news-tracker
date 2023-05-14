@@ -163,7 +163,6 @@ object ArticleController {
   final case class ArticleView(
       id: String,
       title: String,
-      content: String,
       createdAt: LocalDate,
       language: String,
       authors: String,
@@ -177,7 +176,6 @@ object ArticleController {
     def from(article: Article): ArticleView = ArticleView(
       article.id.value,
       article.title.value,
-      article.content.value,
       article.createdAt.value,
       article.language.value,
       article.authors.value,
@@ -190,7 +188,6 @@ object ArticleController {
     def from(event: CreatedArticleEvent): ArticleView = ArticleView(
       event.id,
       event.title,
-      event.content,
       event.createdAt,
       event.language,
       event.authors,
