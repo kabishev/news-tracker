@@ -1,4 +1,5 @@
 import * as React from 'react'
+import ReactCountryFlag from 'react-country-flag'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
@@ -9,7 +10,7 @@ import Paper from '@mui/material/Paper'
 import { styled, Theme, useTheme } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import useMediaQuery from '@mui/material/useMediaQuery';
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 import { Article } from '@/types/api/article'
 
@@ -24,7 +25,9 @@ const renderTitleItem = (
   viewedItems: string[],
   onClick: (id: number) => void
 ) => ({ data, index, style }: ListChildComponentProps<Article[]>) => {
-  const { id, title, source, authors, createdAt } = data[index];
+  const { id, title, source, authors, createdAt, language } = data[index];
+  const countryCode = language && language.toLowerCase() === "en" ? "us" : language;
+  const description = [source, authors, createdAt].filter((item) => item).join(' - ');
   const marked = viewedItems.includes(id);
   return (
     <ListItem style={style} key={index} component="div" disablePadding>
@@ -42,13 +45,18 @@ const renderTitleItem = (
                   {title}
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
-                <Typography
-                  variant="caption"
-                  color={marked ? "text.disabled" : "text.secondary"}
-                >
-                  {`${source} - ${authors} - ${createdAt}`}
-                </Typography>
+              <Grid item container xs={12}>
+                <Grid item xs={1}>
+                  {language && <ReactCountryFlag countryCode={countryCode} />}
+                </Grid>
+                <Grid item xs={11}>
+                  <Typography
+                    variant="caption"
+                    color={marked ? "text.disabled" : "text.secondary"}
+                  >
+                    {description}
+                  </Typography>
+                </Grid>
               </Grid>
             </Grid>
           } />
