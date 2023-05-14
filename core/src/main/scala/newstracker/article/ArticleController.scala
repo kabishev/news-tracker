@@ -2,43 +2,34 @@ package newstracker.article
 
 import cats.Monad
 import cats.effect.Async
-import cats.implicits._
 import eu.timepit.refined.types.string.NonEmptyString
-import fs2.Pipe
-import fs2.kafka._
 import io.circe.generic.auto._
 import io.circe.refined._
-import sttp.capabilities.WebSockets
-import sttp.capabilities.fs2.Fs2Streams
 import sttp.model.StatusCode
 import sttp.tapir._
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.circe._
-import sttp.tapir.server.ServerEndpoint.Full
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 
 import newstracker.article.domain._
-import newstracker.common.{Controller, ErrorResponse}
-import newstracker.kafka.event._
+import newstracker.common.Controller
 
 import java.time.LocalDate
 
 final private class ArticleController[F[_]: Async](
-    private val service: ArticleService[F],
-    private val createdArticleConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent]
+    private val service: ArticleService[F]
 ) extends Controller[F] {
   import ArticleController._
 
-  override def routes = wsb =>
-    Http4sServerInterpreter[F](Controller.serverOptions[F]).toWebSocketRoutes(ws)(wsb) <+>
-      Http4sServerInterpreter[F](Controller.serverOptions[F]).toRoutes(
-        List(
-          createArticle,
-          getAllArticles,
-          getArticleById,
-          updateArticle
-        )
+  override def routes = _ =>
+    Http4sServerInterpreter[F](Controller.serverOptions[F]).toRoutes(
+      List(
+        createArticle,
+        getAllArticles,
+        getArticleById,
+        updateArticle
       )
+    )
 
   private val basePath = "articles"
 
@@ -84,29 +75,13 @@ final private class ArticleController[F[_]: Async](
         .update(req.toDomain(id.value))
         .voidResponse
     }
-
-  private def ws: Full[Unit, Unit, Unit, (StatusCode, ErrorResponse), Pipe[F, Unit, WsEvent], Fs2Streams[F] with WebSockets, F] =
-    Controller.publicEndpoint
-      .in(basePath)
-      .in("ws")
-      .out(webSocketBody[Unit, CodecFormat.Json, WsEvent, CodecFormat.Json](Fs2Streams[F]))
-      .serverLogic { _ =>
-        def wsServerLogic: Pipe[F, Unit, WsEvent] =
-          _ =>
-            createdArticleConsumer.stream
-              .map(ev => WsEvent.ArticleCreated(ArticleView.from(ev.record.value)))
-
-        wsServerLogic.asRight[(StatusCode, ErrorResponse)].pure[F]
-      }
 }
 
 object ArticleController {
 
   def make[F[_]: Async](
-      service: ArticleService[F],
-      createdArticleConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent]
-  ): F[Controller[F]] =
-    Monad[F].pure(new ArticleController[F](service, createdArticleConsumer))
+      service: ArticleService[F]
+  ): F[Controller[F]] = Monad[F].pure(new ArticleController[F](service))
 
   final case class CreateArticleRequest(
       title: NonEmptyString,
@@ -184,22 +159,5 @@ object ArticleController {
       article.source.map(_.value),
       article.tags.map(_.value)
     )
-
-    def from(event: CreatedArticleEvent): ArticleView = ArticleView(
-      event.id,
-      event.title,
-      event.createdAt,
-      event.language,
-      event.authors,
-      event.summary,
-      event.url,
-      event.source,
-      None
-    )
-  }
-
-  sealed trait WsEvent
-  object WsEvent {
-    final case class ArticleCreated(article: ArticleView) extends WsEvent
   }
 }

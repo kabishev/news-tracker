@@ -15,7 +15,7 @@ object Articles {
     for {
       repo  <- ArticleRepository.make[F](resources.mongo)
       svc   <- ArticleService.make[F](repo, resources.createdArticleEventProducer)
-      ctrl  <- ArticleController.make[F](svc, resources.createdArticleEventConsumer)
+      ctrl  <- ArticleController.make[F](svc)
       kafka <- ArticleKafka.make[F](svc, resources.createArticleCommandConsumer)
     } yield new Articles[F](ctrl, kafka)
 }

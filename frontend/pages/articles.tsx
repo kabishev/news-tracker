@@ -24,7 +24,7 @@ export default function ArticlesPage() {
   }
 
   useEffect(() => {
-    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/api/articles/ws`)
+    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`)
     ws.addEventListener('message', (event: MessageEvent) => {
       const message: ArticleWsEvent = JSON.parse(event.data);
 
