@@ -66,7 +66,7 @@ services:
       MONGO_USER: mongo-user
       MONGO_PASSWORD: password123
       KAFKA_SERVERS: kafka:29092
-      KAFKA_GROUP_ID: news-tracker-group
+      KAFKA_GROUP_ID: newstracker-group
       DEEPL_BASE_URI: https://api-free.deepl.com/v2
       DEEPL_AUTH_KEY: 
 
