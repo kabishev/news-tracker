@@ -34,7 +34,8 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
           mock[KafkaConsumer[IO, Unit, CreatedArticleEvent]],
           mock[Producer[IO, Unit, TranslatedEvent]],
           translateCommandProducer,
-          mock[KafkaConsumer[IO, Unit, TranslateCommand]]
+          mock[KafkaConsumer[IO, Unit, TranslateCommand]],
+          mock[Producer[IO, Unit, ServiceEvent]]
         )
         .flatMap(svc => svc.createLocalization(createLocalization))
         .unsafeToFuture()
@@ -57,7 +58,8 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
           mock[KafkaConsumer[IO, Unit, CreatedArticleEvent]],
           mock[Producer[IO, Unit, TranslatedEvent]],
           mock[Producer[IO, Unit, TranslateCommand]],
-          mock[KafkaConsumer[IO, Unit, TranslateCommand]]
+          mock[KafkaConsumer[IO, Unit, TranslateCommand]],
+          mock[Producer[IO, Unit, ServiceEvent]]
         )
         .flatMap(svc => svc.get(TranslationFixtures.tid))
         .unsafeToFuture()
@@ -94,6 +96,9 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
       val translateCommandConsumer = mock[KafkaConsumer[IO, Unit, TranslateCommand]]
       when(translateCommandConsumer.stream).thenReturn(TranslationFixtures.translateCommandStream())
 
+      val serviceEventProducer = mock[Producer[IO, Unit, ServiceEvent]]
+      when(serviceEventProducer.produceOne(any[Unit], any[ServiceEvent])).thenReturn(IO.unit)
+
       TranslationService
         .make[IO](
           repo,
@@ -101,7 +106,8 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
           createdArticleEventConsumer,
           translatedEventProducer,
           mock[Producer[IO, Unit, TranslateCommand]],
-          translateCommandConsumer
+          translateCommandConsumer,
+          serviceEventProducer
         )
         .flatMap(svc => svc.stream.take(1).compile.drain)
         .unsafeToFuture()
