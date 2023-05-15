@@ -11,9 +11,15 @@ export interface Article {
 }
 
 export type ArticleCreatedEvent = {
-  article: Article;
+  articleId: string;
+}
+
+export type ArticleTranslatedEvent = {
+  articleId: string;
+  language: string;
 }
 
 export type ArticleWsEvent = {
   ArticleCreated?: ArticleCreatedEvent;
+  ArticleTranslated?: ArticleTranslatedEvent;
 }

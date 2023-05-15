@@ -42,6 +42,7 @@ val docker = Seq(
   dockerUpdateLatest := true,
   dockerUsername     := sys.env.get("DOCKER_USERNAME"),
   dockerRepository   := sys.env.get("DOCKER_REPO_URI"),
+  dockerExposedPorts := Seq(8080),
   makeBatScripts     := Nil,
   dockerCommands := {
     val commands         = dockerCommands.value

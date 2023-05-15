@@ -28,7 +28,7 @@ final private[deepl] class LiveDeeplClient[F[_]: Async: Logger](
   override def translate(source: String, sourceLanguage: String, targetLanguage: String): F[String] =
     retryingOnAllErrors[String](policy, logError) {
       basicRequest
-        .post(uri"${config.baseUri}/v2/translate")
+        .post(uri"${config.baseUri}/translate")
         .headers(headers)
         .multipartBody(
           multipart("text", source),

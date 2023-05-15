@@ -5,7 +5,7 @@ networks:
 
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.9
+    image: confluentinc/cp-zookeeper:latest
     hostname: zookeeper
     container_name: zookeeper
     environment:
@@ -15,7 +15,7 @@ services:
       - news-tracker-net
 
   kafka:
-    image: confluentinc/cp-kafka:7.0.9
+    image: confluentinc/cp-kafka:latest
     hostname: kafka
     container_name: kafka
     depends_on:
@@ -66,9 +66,25 @@ services:
       MONGO_USER: mongo-user
       MONGO_PASSWORD: password123
       KAFKA_SERVERS: kafka:29092
-      KAFKA_GROUP_ID: news-tracker-group
-      DEEPL_BASE_URI: https://api-free.deepl.com/v2
+      KAFKA_GROUP_ID: newstracker-group
+      DEEPL_BASE_URI: https://api.deepl.com/v2
       DEEPL_AUTH_KEY: 
+
+  news-tracker-clients:
+    image: news-tracker-clients:latest
+    networks:
+      - news-tracker-net
+    depends_on:
+      - mongodb
+      - kafka
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_USER: mongo-user
+      MONGO_PASSWORD: password123
+      KAFKA_SERVERS: kafka:29092
+      KAFKA_GROUP_ID: newstracker-group
+      YAHOO_API_KEY: 
+      YAHOO_POLL_INTERVAL: 1m
 
   news-tracker-frontend:
     image: news-tracker-frontend:latest

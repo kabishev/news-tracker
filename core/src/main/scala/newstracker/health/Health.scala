@@ -10,6 +10,5 @@ final class Health[F[_]] private (
 )
 
 object Health {
-  def make[F[_]: Async]: F[Health[F]] =
-    HealthController.make[F].map(c => new Health[F](c))
+  def make[F[_]: Async]: F[Health[F]] = HealthController.make[F].map(c => new Health[F](c))
 }

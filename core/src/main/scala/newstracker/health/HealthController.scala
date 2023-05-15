@@ -16,7 +16,7 @@ import java.time.Instant
 final class HealthController[F[_]: Async](private val startupTime: Instant) extends Controller[F] {
 
   private val statusEndpoint: ServerEndpoint[Any, F] = infallibleEndpoint.get
-    .in("health" / "status")
+    .in("status")
     .out(jsonBody[HealthController.AppStatus])
     .serverLogicSuccess(_ => Async[F].pure(HealthController.AppStatus(startupTime)))
 

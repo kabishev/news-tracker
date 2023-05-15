@@ -1,30 +1,28 @@
 import * as React from 'react'
+import ReactCountryFlag from 'react-country-flag'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
-import Paper from '@mui/material/Paper'
-import { styled, Theme, useTheme } from '@mui/material/styles'
+import { useTheme } from '@mui/material/styles'
 import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
-import useMediaQuery from '@mui/material/useMediaQuery';
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 import { Article } from '@/types/api/article'
 
-const ArticleComponent = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(2),
-  color: theme.palette.text.secondary,
-  height: "100%",
-}));
+import { TranslationComponent } from './TranslationComponent'
 
 const renderTitleItem = (
   selectedItem: number,
   viewedItems: string[],
   onClick: (id: number) => void
 ) => ({ data, index, style }: ListChildComponentProps<Article[]>) => {
-  const { id, title, source, authors, createdAt } = data[index];
+  const { id, title, source, authors, createdAt, language } = data[index];
+  const countryCode = language && language.toLowerCase() === "en" ? "us" : language;
+  const description = [source, authors, createdAt].filter((item) => item).join(' - ');
   const marked = viewedItems.includes(id);
   return (
     <ListItem style={style} key={index} component="div" disablePadding>
@@ -42,13 +40,18 @@ const renderTitleItem = (
                   {title}
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
-                <Typography
-                  variant="caption"
-                  color={marked ? "text.disabled" : "text.secondary"}
-                >
-                  {`${source} - ${authors} - ${createdAt}`}
-                </Typography>
+              <Grid item container xs={12}>
+                <Grid item xs={1}>
+                  {language && <ReactCountryFlag countryCode={countryCode} />}
+                </Grid>
+                <Grid item xs={11}>
+                  <Typography
+                    variant="caption"
+                    color={marked ? "text.disabled" : "text.secondary"}
+                  >
+                    {description}
+                  </Typography>
+                </Grid>
               </Grid>
             </Grid>
           } />
@@ -58,13 +61,11 @@ const renderTitleItem = (
   ) as JSX.Element;
 }
 
-const MarkupText: React.FC<{ markup: string }> = ({ markup }) => <div dangerouslySetInnerHTML={{ __html: markup }} />;
-
-type ArticleListProps = {
-  data: Article[]
+type ArticlesComponentProps = {
+  articles: Article[]
 }
 
-export const ArticleList: React.FC<ArticleListProps> = ({ data }) => {
+export const ArticlesComponent: React.FC<ArticlesComponentProps> = ({ articles }) => {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.up('md'));
   const [selectedItem, setSelectedItem] = React.useState<number>(0);
@@ -79,8 +80,8 @@ export const ArticleList: React.FC<ArticleListProps> = ({ data }) => {
 
   const handleListItemClick = (item: number) => {
     setSelectedItem(item);
-    if (!viewedItems.includes(data[item].id)) {
-      const newViewedItems = [...viewedItems, data[item].id];
+    if (!viewedItems.includes(articles[item].id)) {
+      const newViewedItems = [...viewedItems, articles[item].id];
       setViewedItems(newViewedItems);
       localStorage.setItem('viewedItems', JSON.stringify(newViewedItems));
     }
@@ -90,15 +91,19 @@ export const ArticleList: React.FC<ArticleListProps> = ({ data }) => {
     <Grid container spacing={1}>
       <Grid item xs={12} md={4}>
         <Box sx={{ width: "100%", bgcolor: "background.paper" }} >
-          <FixedSizeList itemData={data} height={matches ? 1000 : 200} width="100%" itemSize={64} itemCount={data.length} overscanCount={5} >
+          <FixedSizeList
+            itemData={articles}
+            height={matches ? 1000 : 200}
+            width="100%"
+            itemSize={64}
+            itemCount={articles.length}
+            overscanCount={5} >
             {renderTitleItem(selectedItem, viewedItems, handleListItemClick)}
           </FixedSizeList>
         </Box>
       </Grid>
       <Grid item xs={12} md={8}>
-        <ArticleComponent>
-          {data.length !== 0 && <MarkupText markup={data[selectedItem].content} />}
-        </ArticleComponent>
+        <TranslationComponent articleId={articles[selectedItem].id} />
       </Grid>
     </Grid>
   );
