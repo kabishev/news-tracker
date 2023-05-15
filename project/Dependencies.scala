@@ -113,11 +113,13 @@ object Dependencies {
       Libraries.circe.all ++
       Libraries.tapir.all ++
       Libraries.mongo4cats.all ++
+      Libraries.sttp.all ++
       Libraries.logging.all ++
       Seq(
         Libraries.fs2.core,
         Libraries.pureConfig.core,
-        Libraries.newtype
+        Libraries.newtype,
+        Libraries.cats.retry
       )
 
   lazy val testCore = Seq(

@@ -80,7 +80,7 @@ class ArticleRepositorySpec extends AsyncWordSpec with Matchers with EmbeddedMon
     }
 
     "update" should {
-      "update existing category" in {
+      "update existing article" in {
         withEmbeddedMongoDb { db =>
           val update = ArticleFixtures.article().copy(title = ArticleTitle("title-upd"))
           val actual = for {
@@ -96,7 +96,7 @@ class ArticleRepositorySpec extends AsyncWordSpec with Matchers with EmbeddedMon
         }
       }
 
-      "return error when category does not exist" in {
+      "return error when article does not exist" in {
         withEmbeddedMongoDb { db =>
           val update = ArticleFixtures.article().copy(id = ArticleId(ObjectId().toHexString), title = ArticleTitle("title-upd"))
           val actual = for {

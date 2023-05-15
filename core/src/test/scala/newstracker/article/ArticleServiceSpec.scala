@@ -13,6 +13,7 @@ import newstracker.article.ArticleFixtures
 import newstracker.article.db.ArticleRepository
 import newstracker.article.domain.{Article, CreateArticle}
 import newstracker.kafka.Producer
+import newstracker.kafka.event.CreatedArticleEvent
 
 class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
   "A ArticleService" should {
@@ -20,8 +21,8 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.create(any[CreateArticle])).thenReturn(IO.pure(ArticleFixtures.aid))
 
-      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
-      when(producer.produceOne(any[Unit], any[newstracker.kafka.createdArticle.Event])).thenReturn(IO.unit)
+      val producer = mock[Producer[IO, Unit, CreatedArticleEvent]]
+      when(producer.produceOne(any[Unit], any[CreatedArticleEvent])).thenReturn(IO.unit)
 
       val actual = for {
         svc <- ArticleService.make[IO](repo, producer)
@@ -39,7 +40,7 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.get(ArticleFixtures.aid)).thenReturn(IO.pure(ArticleFixtures.article()))
 
-      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
+      val producer = mock[Producer[IO, Unit, CreatedArticleEvent]]
 
       val actual = for {
         svc <- ArticleService.make[IO](repo, producer)
@@ -56,7 +57,7 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.getAll).thenReturn(Stream(ArticleFixtures.article()))
 
-      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
+      val producer = mock[Producer[IO, Unit, CreatedArticleEvent]]
 
       val actual = for {
         svc <- ArticleService.make[IO](repo, producer)
@@ -73,7 +74,7 @@ class ArticleServiceSpec extends AsyncWordSpec with Matchers with MockitoSugar {
       val repo = mock[ArticleRepository[IO]]
       when(repo.update(any[Article])).thenReturn(IO.unit)
 
-      val producer = mock[Producer[IO, Unit, newstracker.kafka.createdArticle.Event]]
+      val producer = mock[Producer[IO, Unit, CreatedArticleEvent]]
 
       val actual = for {
         svc <- ArticleService.make[IO](repo, producer)

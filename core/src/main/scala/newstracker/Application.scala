@@ -8,6 +8,7 @@ import newstracker.article.Articles
 import newstracker.config.ApplicationConfig
 import newstracker.health.Health
 import newstracker.http._
+import newstracker.translation.Translations
 
 object Application extends IOApp.Simple {
   implicit val logger = Slf4jLogger.getLogger[IO]
@@ -16,12 +17,13 @@ object Application extends IOApp.Simple {
     _      <- logger.info(Console.GREEN + config + Console.RESET)
     _ <- ApplicationResources.make[IO](config).use { resources =>
       for {
-        health   <- Health.make[IO]
-        articles <- Articles.make[IO](resources)
-        http     <- Http.make[IO](health, articles)
+        health       <- Health.make[IO]
+        articles     <- Articles.make[IO](resources)
+        translations <- Translations.make[IO](config.deepl, resources)
+        http         <- Http.make[IO](health, articles, translations)
         server = HttpServer[IO].ember(config.httpServer, http).use(_ => IO.never)
         kafka  = articles.kafka
-        _ <- Stream.eval(server).concurrently(kafka.stream).compile.drain
+        _ <- Stream.eval(server).concurrently(kafka.stream).concurrently(translations.stream).compile.drain
       } yield ()
     }
   } yield ()

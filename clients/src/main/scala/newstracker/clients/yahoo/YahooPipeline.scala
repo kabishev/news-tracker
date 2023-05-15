@@ -10,7 +10,8 @@ import newstracker.clients.ApplicationResources
 import newstracker.clients.common.SearchPipeline
 import newstracker.clients.yahoo.db.ArticleRepository
 import newstracker.clients.yahoo.domain._
-import newstracker.kafka._
+import newstracker.kafka.Producer
+import newstracker.kafka.command.CreateArticleCommand
 
 import java.time.LocalDate
 
@@ -18,7 +19,7 @@ final private[yahoo] class LiveYahooPipeline[F[_]: Async: Logger](
     config: YahooConfig,
     client: YahooClient[F],
     service: ArticleService[F],
-    createArticleProducer: Producer[F, Unit, createArticle.Event]
+    createArticleProducer: Producer[F, Unit, CreateArticleCommand]
 ) extends SearchPipeline[F] {
   import YahooSearchPipeline._
 
@@ -34,7 +35,7 @@ final private[yahoo] class LiveYahooPipeline[F[_]: Async: Logger](
       .unNone
       .evalTap(uuids => service.create(uuids.map(uuid => CreateArticle(uuid, ArticleCreatedAt(LocalDate.now())))))
       .flatMap(uuids => Stream.emits(uuids.toList))
-      .evalMap(client.getArticleDetails(_).map(details => ((), details.toEvent)))
+      .evalMap(client.getArticleDetails(_).map(details => ((), details.toCreateArticleCommand)))
       .through(createArticleProducer.pipe)
       .handleErrorWith(error => Stream.eval(Logger[F].error(s"search failed: ${error.getMessage}")) >> searchStream)
 
@@ -56,7 +57,7 @@ object YahooSearchPipeline {
     } yield new LiveYahooPipeline[F](config, client, service, resources.createArticleProducer)
 
   implicit class ArticleDetailsOps(val details: ArticleDetails) extends AnyVal {
-    def toEvent = createArticle.Event(
+    def toCreateArticleCommand = CreateArticleCommand(
       details.title.value,
       details.content.value,
       details.createdAt.value,

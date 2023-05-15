@@ -16,6 +16,8 @@ class ConfigSpec extends AsyncWordSpec with Matchers {
   System.setProperty("MONGO_PASSWORD", "password")
   System.setProperty("KAFKA_SERVERS", "kafka:1234")
   System.setProperty("KAFKA_GROUP_ID", "kafka-group")
+  System.setProperty("DEEPL_BASE_URI", "https://api.deepl.com")
+  System.setProperty("DEEPL_AUTH_KEY", "auth-key")
 
   "An Config" should {
 
@@ -28,6 +30,8 @@ class ConfigSpec extends AsyncWordSpec with Matchers {
         c.mongo.connectionUri mustBe "mongodb://user:password@mongo/news-tracker"
         c.kafka.servers mustBe "kafka:1234"
         c.kafka.groupId mustBe "kafka-group"
+        c.deepl.baseUri mustBe "https://api.deepl.com"
+        c.deepl.authKey mustBe "auth-key"
       }
     }
   }

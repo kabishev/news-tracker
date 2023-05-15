@@ -8,7 +8,6 @@ import fs2.Pipe
 import fs2.kafka._
 import io.circe.generic.auto._
 import io.circe.refined._
-import org.http4s.HttpRoutes
 import sttp.capabilities.WebSockets
 import sttp.capabilities.fs2.Fs2Streams
 import sttp.model.StatusCode
@@ -20,25 +19,26 @@ import sttp.tapir.server.http4s.Http4sServerInterpreter
 
 import newstracker.article.domain._
 import newstracker.common.{Controller, ErrorResponse}
+import newstracker.kafka.event._
 
 import java.time.LocalDate
 
 final private class ArticleController[F[_]: Async](
     private val service: ArticleService[F],
-    private val createdArticleConsumer: KafkaConsumer[F, Unit, newstracker.kafka.createdArticle.Event]
+    private val createdArticleConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent]
 ) extends Controller[F] {
   import ArticleController._
 
-  override def routes: HttpRoutes[F] = Http4sServerInterpreter[F](Controller.serverOptions[F]).toRoutes(
-    List(
-      createArticle,
-      getAllArticles,
-      getArticleById,
-      updateArticle
-    )
-  )
-
-  override def webSocketRoutes = Http4sServerInterpreter[F](Controller.serverOptions[F]).toWebSocketRoutes(ws)
+  override def routes = wsb =>
+    Http4sServerInterpreter[F](Controller.serverOptions[F]).toWebSocketRoutes(ws)(wsb) <+>
+      Http4sServerInterpreter[F](Controller.serverOptions[F]).toRoutes(
+        List(
+          createArticle,
+          getAllArticles,
+          getArticleById,
+          updateArticle
+        )
+      )
 
   private val basePath = "articles"
 
@@ -104,7 +104,7 @@ object ArticleController {
 
   def make[F[_]: Async](
       service: ArticleService[F],
-      createdArticleConsumer: KafkaConsumer[F, Unit, newstracker.kafka.createdArticle.Event]
+      createdArticleConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent]
   ): F[Controller[F]] =
     Monad[F].pure(new ArticleController[F](service, createdArticleConsumer))
 
@@ -187,7 +187,7 @@ object ArticleController {
       article.tags.map(_.value)
     )
 
-    def from(event: newstracker.kafka.createdArticle.Event): ArticleView = ArticleView(
+    def from(event: CreatedArticleEvent): ArticleView = ArticleView(
       event.id,
       event.title,
       event.content,

@@ -3,7 +3,7 @@ package newstracker.article
 import mongo4cats.bson.ObjectId
 
 import newstracker.article.domain._
-import newstracker.kafka.createdArticle
+import newstracker.kafka.event.CreatedArticleEvent
 
 import java.time.LocalDate
 
@@ -48,5 +48,5 @@ package object ArticleFixtures {
       summary: Option[String] = None,
       url: Option[String] = None,
       source: Option[String] = None
-  ): createdArticle.Event = createdArticle.Event(id, title, content, createdAt, language, authors, summary, url, source)
+  ): CreatedArticleEvent = CreatedArticleEvent(id, title, content, createdAt, language, authors, summary, url, source)
 }
