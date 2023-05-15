@@ -15,7 +15,7 @@ class HealthControllerSpec extends ControllerSpec {
     "return status" in {
       val controller = IO(new HealthController[IO](ts))
 
-      val request  = Request[IO](uri = uri"/health/status", method = Method.GET)
+      val request  = Request[IO](uri = uri"/status", method = Method.GET)
       val response = controller.flatMap(_.routes(null).orNotFound.run(request))
 
       response.mustHaveStatus(Status.Ok, Some(s"""{"startupTime":"$ts"}"""))
