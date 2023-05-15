@@ -13,7 +13,8 @@ object Ws {
     WsController
       .make[F](
         resources.createdArticleEventConsumer,
-        resources.translatedEventConsumer
+        resources.translatedEventConsumer,
+        resources.serviceEventConsumer
       )
       .map(c => new Ws[F](c))
 }

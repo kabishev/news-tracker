@@ -23,7 +23,8 @@ object Translations {
         resources.createdArticleEventConsumer,
         resources.translatedEventProducer,
         resources.translateCommandProducer,
-        resources.translateCommandConsumer
+        resources.translateCommandConsumer,
+        resources.serviceEventProducer
       )
       ctrl <- TranslationController.make[F](svc)
     } yield new Translations[F](ctrl, svc.stream)

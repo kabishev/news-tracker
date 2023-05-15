@@ -20,7 +20,8 @@ import newstracker.kafka.event._
 
 final private class WsController[F[_]: Async](
     private val createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
-    private val translatedEventConsumer: KafkaConsumer[F, Unit, TranslatedEvent]
+    private val translatedEventConsumer: KafkaConsumer[F, Unit, TranslatedEvent],
+    private val serviceEventConsumer: KafkaConsumer[F, Unit, ServiceEvent]
 ) extends Controller[F] {
 
   override def routes =
@@ -36,8 +37,21 @@ final private class WsController[F[_]: Async](
         val translatedEventConsumerStream = translatedEventConsumer.stream
           .map(ev => WsEvent.ArticleTranslated.from(ev.record.value))
 
+        val serviceEventConsumerStream = serviceEventConsumer.stream
+          .map { ev =>
+            ev.record.value match {
+              case OnlineEvent(id, name)                                 => WsEvent.ServiceOnline(id, name)
+              case OfflineEvent(id)                                      => WsEvent.ServiceOffline(id)
+              case ErrorEvent(id, error)                                 => WsEvent.ServiceError(id, error)
+              case TaskCompletedEvent(id, description, duration, result) => WsEvent.TaskCompleted(id, description, duration, result)
+            }
+          }
+
         def wsServerLogic: Pipe[F, Unit, WsEvent] =
-          _ => createdArticleEventConsumerStream.merge(translatedEventConsumerStream)
+          _ =>
+            createdArticleEventConsumerStream
+              .merge(translatedEventConsumerStream)
+              .merge(serviceEventConsumerStream)
 
         wsServerLogic.asRight[(StatusCode, ErrorResponse)].pure[F]
       }
@@ -47,7 +61,14 @@ object WsController {
 
   def make[F[_]: Async](
       createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
-      translatedEventConsumer: KafkaConsumer[F, Unit, TranslatedEvent]
+      translatedEventConsumer: KafkaConsumer[F, Unit, TranslatedEvent],
+      serviceEventConsumer: KafkaConsumer[F, Unit, ServiceEvent]
   ): F[Controller[F]] =
-    Monad[F].pure(new WsController[F](createdArticleEventConsumer, translatedEventConsumer))
+    Monad[F].pure(
+      new WsController[F](
+        createdArticleEventConsumer,
+        translatedEventConsumer,
+        serviceEventConsumer
+      )
+    )
 }
