@@ -17,7 +17,7 @@ import newstracker.{MongoOps, translation}
 import scala.concurrent.Future
 
 class TranslationRepositorySpec extends AsyncWordSpec with Matchers with EmbeddedMongo with MongoOps {
-  override protected val mongoPort: Int = 12348
+  override protected val mongoPort: Int = 12358
 
   implicit val logger = Slf4jLogger.getLogger[IO]
 
