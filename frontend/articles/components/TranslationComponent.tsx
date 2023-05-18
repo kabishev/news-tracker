@@ -8,11 +8,9 @@ import { styled } from '@mui/material/styles'
 import { WsEvent } from '@/types/api'
 import { Translation } from '@/types/api/translation'
 
-import { Localizations } from './Localizations'
+import { useArticlesContext } from '../ArticlesContext'
 
-type TranslationComponentProps = {
-  articleId?: string
-}
+import { Localizations } from './Localizations'
 
 const ArticleContent = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -29,11 +27,16 @@ const Progress: React.FC = () => (
   </Box>
 )
 
-export const TranslationComponent: React.FC<TranslationComponentProps> = (props) => {
-  const [translation, setTranslation] = React.useState<Translation>()
+export const TranslationComponent: React.FC = () => {
+  const [translation, setTranslation] = React.useState<Translation | undefined>()
   const [waitTranslation, setWaitTranslation] = React.useState<string>()
-  const [selectedCode, setSelectedCode] = React.useState<string>()
-  const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`);
+  const { store, setSelectedLocalization } = useArticlesContext()
+  const { selectedArticleId, selectedLocalizationCode } = store
+
+  const { lastMessage } = useWebSocket(
+    `${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`, {
+    shouldReconnect: () => true,
+  });
 
   const fetchTranslation = async (id: string) => {
     try {
@@ -57,55 +60,51 @@ export const TranslationComponent: React.FC<TranslationComponentProps> = (props)
       })
     }
     catch (e) {
+      setWaitTranslation(selectedLocalizationCode)
       console.error(e)
     }
   }
-
-  useEffect(() => setSelectedCode(localStorage.getItem('selectedCode') ?? 'en'), [])
 
   useEffect(() => {
     const event: WsEvent | null = JSON.parse(lastMessage?.data || null)
     if (event?.ArticleTranslated) {
       const { articleId } = event.ArticleTranslated
-      if (articleId === props.articleId) {
+      if (articleId === selectedArticleId) {
         fetchTranslation(articleId)
       }
     }
-  }, [lastMessage, props.articleId])
+  }, [lastMessage, selectedArticleId])
 
   React.useEffect(() => {
-    if (props.articleId) {
-      fetchTranslation(props.articleId)
+    if (selectedArticleId !== null) {
+      fetchTranslation(selectedArticleId)
     }
-  }, [props.articleId])
+  }, [selectedArticleId])
 
-  React.useEffect(() => setWaitTranslation(undefined), [translation, selectedCode])
+  React.useEffect(() => setWaitTranslation(undefined), [translation, selectedLocalizationCode])
 
   React.useEffect(() => {
-    if (!props.articleId || !translation || !selectedCode) {
+    if (selectedArticleId === null || !translation) {
       return
     }
 
     const localization = translation
       .localizations
-      .find(({ language }) => language.toLowerCase() === selectedCode.toLowerCase())
+      .find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())
 
     if (!localization) {
-      translateContent(props.articleId, selectedCode)
+      translateContent(selectedArticleId, selectedLocalizationCode)
     }
-  }, [props.articleId, translation, selectedCode])
+  }, [selectedArticleId, translation, selectedLocalizationCode])
 
   const localizations = (translation && translation.localizations) ?? []
-  const content = localizations.find(({ language }) => language.toLowerCase() === selectedCode?.toLowerCase())?.content
+  const content = localizations.find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())?.content
 
-  const handleTabChanged = (code: string) => {
-    setSelectedCode(code)
-    localStorage.setItem('selectedCode', code)
-  }
+  const handleTabChanged = (code: string) => setSelectedLocalization(code)
 
   return (
     <>
-      <Localizations selectedCode={selectedCode} localizations={localizations} onTabChanged={handleTabChanged} />
+      <Localizations selectedCode={selectedLocalizationCode} localizations={localizations} onTabChanged={handleTabChanged} />
       <ArticleContent>
         {!waitTranslation
           ? <MarkupText markup={content} />
