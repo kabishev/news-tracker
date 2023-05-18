@@ -45,14 +45,8 @@ final private class LiveTranslationService[F[_]: Async: Logger](
   override def stream: Stream[F, Unit] =
     createdArticleEventStream
       .concurrently(translateCommandStream)
-      .concurrently(Stream.eval {
-        Logger[F].info("translation service started") >>
-          serviceEventProducer.produceOne(OnlineEvent(config.id, config.name))
-      })
-      .onFinalize {
-        Logger[F].info("translation service stopped") >>
-          serviceEventProducer.produceOne(OfflineEvent(config.id))
-      }
+      .concurrently(Stream.eval(serviceEventProducer.produceOne(ServiceEvent.makeOnlineEvent(config.name))))
+      .onFinalize(serviceEventProducer.produceOne(ServiceEvent.makeOfflineEvent(config.name)))
 
   private def createdArticleEventStream: Stream[F, Unit] =
     createdArticleEventConsumer.stream
@@ -64,13 +58,12 @@ final private class LiveTranslationService[F[_]: Async: Logger](
       .through(commitBatchWithin(500, 10.seconds))
       .handleErrorWith { err =>
         Stream.eval {
-          Logger[F].error(err)("translation error while processing created article event") >>
-            serviceEventProducer.produceOne(
-              ErrorEvent(
-                config.id,
-                s"translation error while processing created article event: ${err.getMessage}"
-              )
+          serviceEventProducer.produceOne(
+            ServiceEvent.makeErrorEvent(
+              config.name,
+              s"translation error while processing created article event: ${err.getMessage}"
             )
+          )
         } >> createdArticleEventStream
       }
 
@@ -87,13 +80,12 @@ final private class LiveTranslationService[F[_]: Async: Logger](
       .through(commitBatchWithin(500, 10.seconds))
       .handleErrorWith { err =>
         Stream.eval {
-          Logger[F].error(err)("translation error while processing translate command") >>
-            serviceEventProducer.produceOne(
-              ErrorEvent(
-                config.id,
-                s"translation error while processing translate command: ${err.getMessage}"
-              )
+          serviceEventProducer.produceOne(
+            ServiceEvent.makeErrorEvent(
+              config.name,
+              s"translation error while processing translate command: ${err.getMessage}"
             )
+          )
         } >> translateCommandStream
       }
 
@@ -118,18 +110,11 @@ final private class LiveTranslationService[F[_]: Async: Logger](
           .flatMap { updatedTranslation =>
             Logger[F].info(s"translation updated: id = ${translationId.value}, language = ${targetLanguage.value}") >>
               translatedEventProducer.produceOne(TranslatedEvent(updatedTranslation.id.value, targetLanguage.value)) >>
-              Logger[F].info(
-                s"translation completed: " +
-                  s"id = ${translationId.value}, " +
-                  s"language = ${targetLanguage.value}, " +
-                  s"duration = ${System.currentTimeMillis() - startTime}ms"
-              ) >>
               serviceEventProducer.produceOne(
-                TaskCompletedEvent(
-                  config.id,
+                ServiceEvent.makeTaskCompletedEvent(
+                  config.name,
                   s"translation completed: id = ${translationId.value}, language = ${targetLanguage.value}",
-                  System.currentTimeMillis() - startTime,
-                  "SUCCESS"
+                  System.currentTimeMillis() - startTime
                 )
               )
           }
@@ -163,7 +148,7 @@ object TranslationService {
   ): F[TranslationService[F]] =
     Async[F].pure(
       new LiveTranslationService[F](
-        TranslationServiceConfig("translation-service", "translation-service"),
+        TranslationServiceConfig("translation-service"),
         repository,
         deeplClient,
         createdArticleEventConsumer,

@@ -9,7 +9,7 @@ import io.circe.jawn.decodeByteArray
 object Consumer {
   def make[F[_]: Async, K, V](
       config: KafkaConfig,
-      autocommit: Boolean = false
+      autocommit: Boolean = true
   )(implicit kdecoder: Decoder[K], vdecoder: Decoder[V]): Resource[F, KafkaConsumer[F, K, V]] = {
     implicit val vd: Deserializer[F, V] = Deserializer.lift[F, V](decodeByteArray[V](_).liftTo[F])
     implicit val kd: Deserializer[F, K] = Deserializer.lift[F, K] { bytes =>
