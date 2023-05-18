@@ -1,17 +1,16 @@
-import * as React from 'react'
+import React, { useEffect } from 'react'
+import useWebSocket from 'react-use-websocket'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Paper from '@mui/material/Paper'
 import { styled } from '@mui/material/styles'
 
-import { ArticleWsEvent } from '@/types/api/article'
+import { WsEvent } from '@/types/api'
 import { Translation } from '@/types/api/translation'
 
-import { Localizations } from './Localizations'
+import { useArticlesContext } from '../ArticlesContext'
 
-type TranslationComponentProps = {
-  articleId?: string
-}
+import { Localizations } from './Localizations'
 
 const ArticleContent = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -28,14 +27,16 @@ const Progress: React.FC = () => (
   </Box>
 )
 
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-export const TranslationComponent: React.FC<TranslationComponentProps> = (props) => {
-  const [translation, setTranslation] = React.useState<Translation>()
+export const TranslationComponent: React.FC = () => {
+  const [translation, setTranslation] = React.useState<Translation | undefined>()
   const [waitTranslation, setWaitTranslation] = React.useState<string>()
-  const [selectedCode, setSelectedCode] = React.useState<string>()
+  const { store, setSelectedLocalization } = useArticlesContext()
+  const { selectedArticleId, selectedLocalizationCode } = store
+
+  const { lastMessage } = useWebSocket(
+    `${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`, {
+    shouldReconnect: () => true,
+  });
 
   const fetchTranslation = async (id: string) => {
     try {
@@ -59,65 +60,56 @@ export const TranslationComponent: React.FC<TranslationComponentProps> = (props)
       })
     }
     catch (e) {
+      setWaitTranslation(selectedLocalizationCode)
       console.error(e)
     }
   }
 
-  React.useEffect(() => {
-    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`)
-    ws.addEventListener('message', (event: MessageEvent) => {
-      const message: ArticleWsEvent = JSON.parse(event.data);
-
-      if (message.ArticleTranslated) {
-        const { articleId } = message.ArticleTranslated
-        if (articleId === props.articleId) {
-          fetchTranslation(articleId)
-        }
-      }
-    });
-
-    if (props.articleId) {
-      fetchTranslation(props.articleId)
-    }
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close()
+  useEffect(() => {
+    const event: WsEvent | null = JSON.parse(lastMessage?.data || null)
+    if (event?.ArticleTranslated) {
+      const { articleId } = event.ArticleTranslated
+      if (articleId === selectedArticleId) {
+        fetchTranslation(articleId)
       }
     }
-  }, [props.articleId])
-
-  React.useEffect(() => setWaitTranslation(undefined), [translation, selectedCode])
+  }, [lastMessage, selectedArticleId])
 
   React.useEffect(() => {
-    if (!props.articleId || !translation || !selectedCode) {
+    if (selectedArticleId !== null) {
+      fetchTranslation(selectedArticleId)
+    }
+  }, [selectedArticleId])
+
+  React.useEffect(() => setWaitTranslation(undefined), [translation, selectedLocalizationCode])
+
+  React.useEffect(() => {
+    if (selectedArticleId === null || !translation) {
       return
     }
 
     const localization = translation
       .localizations
-      .find(({ language }) => language.toLowerCase() === selectedCode.toLowerCase())
+      .find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())
 
     if (!localization) {
-      translateContent(props.articleId, selectedCode)
+      translateContent(selectedArticleId, selectedLocalizationCode)
     }
-  }, [props.articleId, translation, selectedCode])
+  }, [selectedArticleId, translation, selectedLocalizationCode])
 
   const localizations = (translation && translation.localizations) ?? []
-  const content = localizations.find(({ language }) => language.toLowerCase() === selectedCode?.toLowerCase())?.content
+  const content = localizations.find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())?.content
+
+  const handleTabChanged = (code: string) => setSelectedLocalization(code)
 
   return (
     <>
-      <Localizations
-        selectedCode={selectedCode}
-        localizations={localizations}
-        onTabChanged={setSelectedCode}
-      />
+      <Localizations selectedCode={selectedLocalizationCode} localizations={localizations} onTabChanged={handleTabChanged} />
       <ArticleContent>
         {!waitTranslation
           ? <MarkupText markup={content} />
           : <Progress />}
       </ArticleContent >
     </>
-  ) || null;
+  );
 }

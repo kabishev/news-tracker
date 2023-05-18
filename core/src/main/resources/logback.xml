@@ -10,13 +10,13 @@
     <appender-ref ref="STDOUT" />
   </appender>
 
-  <logger name="application" level="INFO" />
+  <logger name="application" level="WARN" />
 
-  <logger name="org.http4s.client.middleware" level="INFO"/>
+  <logger name="org.http4s.client.middleware" level="WARN"/>
 
-  <logger name="org.http4s.server.middleware" level="INFO"/>
+  <logger name="org.http4s.server.middleware" level="WARN"/>
 
-  <root level="INFO">
+  <root level="WARN">
     <appender-ref ref="ASYNCSTDOUT" />
   </root>
 

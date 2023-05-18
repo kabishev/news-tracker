@@ -31,25 +31,18 @@ type LocalizationsProps = {
 }
 
 export const Localizations: React.FC<LocalizationsProps> = ({ selectedCode, localizations, onTabChanged }) => {
-  const [value, setValue] = React.useState(0)
   const languages = useAvailableLanguages()
   const translatedCodes = localizations.map(({ language }) => language.toLowerCase())
   const marked = (language: Language) => translatedCodes.includes(language.code.toLowerCase())
 
-  const handleChange = (_: React.SyntheticEvent, value: number) => {
-    setValue(value)
-    onTabChanged(languages[value].code)
-  }
+  const handleChange = (_: React.SyntheticEvent, value: number) => onTabChanged(languages[value].code)
 
-  React.useEffect(() => {
-    const index = languages.findIndex(({ code }) => code.toLowerCase() === selectedCode?.toLowerCase())
-    setValue(index > -1 ? index : 0)
-  }, [selectedCode, languages])
+  const index = languages.findIndex(({ code }) => code.toLowerCase() === selectedCode?.toLowerCase())
 
   return (
     <>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange}>
+        <Tabs value={index > -1 ? index : 0} onChange={handleChange}>
           {languages.map((language, index) =>
             <Tab
               key={`${index}${language.code}`}

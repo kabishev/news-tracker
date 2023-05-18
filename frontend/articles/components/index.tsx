@@ -1,0 +1,1 @@
+export { ArticlesComponent } from './ArticlesComponent'

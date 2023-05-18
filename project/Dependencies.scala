@@ -13,6 +13,7 @@ object Dependencies {
     val kafka           = "2.5.0"
     val kindProjector   = "0.13.2"
     val log4cats        = "2.5.0"
+    val logback         = "1.4.7"
     val mokito          = "3.2.15.0"
     val mongo4cats      = "0.6.10"
     val nameOf          = "4.0.0"
@@ -21,7 +22,6 @@ object Dependencies {
     val pureConfig      = "0.17.2"
     val scalacheck      = "1.17.0"
     val scalatest       = "3.2.15"
-    val slf4j           = "2.0.7"
     val sttp            = "3.8.15"
     val tapir           = "1.2.12"
   }
@@ -93,10 +93,9 @@ object Dependencies {
     }
 
     object logging {
-      val slf4j         = "org.slf4j"      % "slf4j-simple"   % Versions.slf4j
-      val log4cats      = "org.typelevel" %% "log4cats-core"  % Versions.log4cats
-      val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % Versions.log4cats
-      val all           = Seq(slf4j, log4cats, log4catsSlf4j)
+      val logback  = "ch.qos.logback" % "logback-classic" % Versions.logback
+      val log4cats = "org.typelevel" %% "log4cats-slf4j"  % Versions.log4cats
+      val all      = Seq(logback, log4cats)
     }
 
     object testing {
@@ -133,8 +132,7 @@ object Dependencies {
     Libraries.cats.all ++
       Libraries.kafka.all ++
       Libraries.fs2.all ++
-      Libraries.circe.all ++
-      Libraries.logging.all
+      Libraries.circe.all
 
   lazy val testKafka = Seq(
     Libraries.testing.scalatest,
