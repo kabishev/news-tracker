@@ -51,12 +51,10 @@ final private class WsController[F[_]: Async: Logger](
           }
 
         def wsServerLogic: Pipe[F, Unit, WsEvent] =
-          _ => {
-            println("\nWS SERVER LOGIC\n")
+          _ =>
             createdArticleEventConsumerStream
               .merge(translatedEventConsumerStream)
               .merge(serviceEventConsumerStream)
-          }
 
         wsServerLogic.asRight[(StatusCode, ErrorResponse)].pure[F]
       }
