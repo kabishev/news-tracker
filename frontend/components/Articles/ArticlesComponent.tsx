@@ -3,7 +3,6 @@ import ReactCountryFlag from 'react-country-flag'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
-import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import { useTheme } from '@mui/material/styles'
@@ -25,39 +24,37 @@ const renderTitleItem = (
   const description = [source, authors, createdAt].filter((item) => item).join(' - ');
   const marked = viewedItems.includes(id);
   return (
-    <ListItem style={style} key={index} component="div" disablePadding>
-      <ListItemButton selected={selectedItem == index} onClick={() => onClick(index)}>
-        <Tooltip title={title} placement='right'>
-          <ListItemText primary={
-            <Grid container direction="column">
-              <Grid item xs={12} width="100%">
+    <ListItemButton divider key={index} style={style} selected={selectedItem == index} onClick={() => onClick(index)}>
+      <Tooltip title={title} placement='right'>
+        <ListItemText primary={
+          <Grid container direction="column">
+            <Grid item xs={12} width="100%">
+              <Typography
+                noWrap
+                variant="subtitle2"
+                color={marked ? "text.disabled" : "text.primary"}
+                fontWeight={marked ? 'none' : 'bold'}
+              >
+                {title}
+              </Typography>
+            </Grid>
+            <Grid item container xs={12}>
+              <Grid item xs={1}>
+                {language && <ReactCountryFlag countryCode={countryCode} />}
+              </Grid>
+              <Grid item xs={11}>
                 <Typography
-                  noWrap
-                  variant="subtitle2"
-                  color={marked ? "text.disabled" : "text.primary"}
-                  fontWeight={marked ? 'none' : 'bold'}
+                  variant="caption"
+                  color={marked ? "text.disabled" : "text.secondary"}
                 >
-                  {title}
+                  {description}
                 </Typography>
               </Grid>
-              <Grid item container xs={12}>
-                <Grid item xs={1}>
-                  {language && <ReactCountryFlag countryCode={countryCode} />}
-                </Grid>
-                <Grid item xs={11}>
-                  <Typography
-                    variant="caption"
-                    color={marked ? "text.disabled" : "text.secondary"}
-                  >
-                    {description}
-                  </Typography>
-                </Grid>
-              </Grid>
             </Grid>
-          } />
-        </Tooltip>
-      </ListItemButton>
-    </ListItem>
+          </Grid>
+        } />
+      </Tooltip>
+    </ListItemButton>
   ) as JSX.Element;
 }
 
@@ -78,24 +75,36 @@ export const ArticlesComponent: React.FC<ArticlesComponentProps> = ({ articles }
     }
   }, []);
 
+  React.useEffect(() => {
+    const storedId = localStorage.getItem('selectedArticleId');
+    if (storedId) {
+      const index = articles.findIndex((article) => article.id === storedId);
+      setSelectedItem(index > -1 ? index : 0);
+    }
+
+  }, [articles]);
+
   const handleListItemClick = (item: number) => {
     setSelectedItem(item);
+
     if (!viewedItems.includes(articles[item].id)) {
       const newViewedItems = [...viewedItems, articles[item].id];
       setViewedItems(newViewedItems);
       localStorage.setItem('viewedItems', JSON.stringify(newViewedItems));
     }
+
+    localStorage.setItem("selectedArticleId", articles[item].id);
   }
 
   return (
-    <Grid container spacing={1}>
+    <Grid container spacing={3}>
       <Grid item xs={12} md={4}>
         <Box sx={{ width: "100%", bgcolor: "background.paper" }} >
           <FixedSizeList
             itemData={articles}
             height={matches ? 1000 : 200}
             width="100%"
-            itemSize={64}
+            itemSize={80}
             itemCount={articles.length}
             overscanCount={5} >
             {renderTitleItem(selectedItem, viewedItems, handleListItemClick)}

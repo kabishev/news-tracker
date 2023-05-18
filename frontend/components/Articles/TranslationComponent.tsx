@@ -1,10 +1,11 @@
-import * as React from 'react'
+import React, { useEffect } from 'react'
+import useWebSocket from 'react-use-websocket'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import Paper from '@mui/material/Paper'
 import { styled } from '@mui/material/styles'
 
-import { ArticleWsEvent } from '@/types/api/article'
+import { WsEvent } from '@/types/api'
 import { Translation } from '@/types/api/translation'
 
 import { Localizations } from './Localizations'
@@ -28,14 +29,11 @@ const Progress: React.FC = () => (
   </Box>
 )
 
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 export const TranslationComponent: React.FC<TranslationComponentProps> = (props) => {
   const [translation, setTranslation] = React.useState<Translation>()
   const [waitTranslation, setWaitTranslation] = React.useState<string>()
   const [selectedCode, setSelectedCode] = React.useState<string>()
+  const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`);
 
   const fetchTranslation = async (id: string) => {
     try {
@@ -63,27 +61,21 @@ export const TranslationComponent: React.FC<TranslationComponentProps> = (props)
     }
   }
 
-  React.useEffect(() => {
-    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`)
-    ws.addEventListener('message', (event: MessageEvent) => {
-      const message: ArticleWsEvent = JSON.parse(event.data);
+  useEffect(() => setSelectedCode(localStorage.getItem('selectedCode') ?? 'en'), [])
 
-      if (message.ArticleTranslated) {
-        const { articleId } = message.ArticleTranslated
-        if (articleId === props.articleId) {
-          fetchTranslation(articleId)
-        }
+  useEffect(() => {
+    const event: WsEvent | null = JSON.parse(lastMessage?.data || null)
+    if (event?.ArticleTranslated) {
+      const { articleId } = event.ArticleTranslated
+      if (articleId === props.articleId) {
+        fetchTranslation(articleId)
       }
-    });
+    }
+  }, [lastMessage, props.articleId])
 
+  React.useEffect(() => {
     if (props.articleId) {
       fetchTranslation(props.articleId)
-    }
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close()
-      }
     }
   }, [props.articleId])
 
@@ -106,18 +98,19 @@ export const TranslationComponent: React.FC<TranslationComponentProps> = (props)
   const localizations = (translation && translation.localizations) ?? []
   const content = localizations.find(({ language }) => language.toLowerCase() === selectedCode?.toLowerCase())?.content
 
+  const handleTabChanged = (code: string) => {
+    setSelectedCode(code)
+    localStorage.setItem('selectedCode', code)
+  }
+
   return (
     <>
-      <Localizations
-        selectedCode={selectedCode}
-        localizations={localizations}
-        onTabChanged={setSelectedCode}
-      />
+      <Localizations selectedCode={selectedCode} localizations={localizations} onTabChanged={handleTabChanged} />
       <ArticleContent>
         {!waitTranslation
           ? <MarkupText markup={content} />
           : <Progress />}
       </ArticleContent >
     </>
-  ) || null;
+  );
 }

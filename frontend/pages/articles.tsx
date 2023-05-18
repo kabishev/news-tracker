@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react'
+import useWebSocket from 'react-use-websocket'
 import CircularProgress from '@mui/material/CircularProgress'
 import Head from 'next/head'
 
 import ArticlesComponent from '@/components/Articles'
 import { AvailableLanguagesContext } from '@/contexts/AvailableLanguagesContext'
 import styles from '@/styles/Home.module.css'
-import { Article, ArticleWsEvent } from '@/types/api/article'
+import { Article, WsEvent } from '@/types/api'
 import { availableLanguages } from '@/types/languages'
 
 export default function ArticlesPage() {
   const [articles, setArticles] = React.useState<Article[]>([])
   const [isLoading, setLoading] = React.useState(true)
+  const { lastMessage } = useWebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`);
 
   const fetchArticles = async () => {
     try {
@@ -24,21 +26,11 @@ export default function ArticlesPage() {
   }
 
   useEffect(() => {
-    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_SERVER_WS_ADDRESS}/ws`)
-    ws.addEventListener('message', (event: MessageEvent) => {
-      const message: ArticleWsEvent = JSON.parse(event.data);
-
-      if (message.ArticleCreated) {
-        fetchArticles()
-      }
-    });
-
-    return () => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close()
-      }
+    const event: WsEvent | null = JSON.parse(lastMessage?.data || null)
+    if (event?.ArticleCreated) {
+      fetchArticles()
     }
-  }, [])
+  }, [lastMessage])
 
   useEffect(() => { fetchArticles() }, [])
 
@@ -46,7 +38,7 @@ export default function ArticlesPage() {
     <AvailableLanguagesContext.Provider value={availableLanguages}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.png" />
         <title>Articles</title>
       </Head>
       <div className={styles.center}>
