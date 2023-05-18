@@ -70,7 +70,7 @@ services:
       DEEPL_BASE_URI: https://api.deepl.com/v2
       DEEPL_AUTH_KEY: 
 
-  news-tracker-clients:
+  news-tracker-clients-de:
     image: news-tracker-clients:latest
     networks:
       - news-tracker-net
@@ -83,8 +83,28 @@ services:
       MONGO_PASSWORD: password123
       KAFKA_SERVERS: kafka:29092
       KAFKA_GROUP_ID: newstracker-group
+      YAHOO_NAME_SUFFIX: "de"
       YAHOO_API_KEY: 
       YAHOO_POLL_INTERVAL: 1m
+      YAHOO_REGION: DE
+
+  news-tracker-clients-en:
+    image: news-tracker-clients:latest
+    networks:
+      - news-tracker-net
+    depends_on:
+      - mongodb
+      - kafka
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_USER: mongo-user
+      MONGO_PASSWORD: password123
+      KAFKA_SERVERS: kafka:29092
+      KAFKA_GROUP_ID: newstracker-group
+      YAHOO_NAME_SUFFIX: "en"
+      YAHOO_API_KEY: 
+      YAHOO_POLL_INTERVAL: 1m
+      YAHOO_REGION: EN
 
   news-tracker-frontend:
     image: news-tracker-frontend:latest

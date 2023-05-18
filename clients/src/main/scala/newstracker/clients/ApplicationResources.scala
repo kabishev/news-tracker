@@ -7,13 +7,15 @@ import sttp.client3.httpclient.fs2.HttpClientFs2Backend
 import sttp.client3.{SttpBackend, SttpBackendOptions}
 
 import newstracker.clients.config._
-import newstracker.kafka.command.CreateArticleCommand
-import newstracker.kafka.{KafkaConfig, Producer}
+import newstracker.kafka.Producer
+import newstracker.kafka.command._
+import newstracker.kafka.event.ServiceEvent
 
 trait ApplicationResources[F[_]] {
   def httpClientBackend: SttpBackend[F, Any]
   def mongo: MongoDatabase[F]
   def createArticleProducer: Producer[F, Unit, CreateArticleCommand]
+  def serviceEventsProducer: Producer[F, Unit, ServiceEvent]
 }
 
 object ApplicationResources {
@@ -27,17 +29,16 @@ object ApplicationResources {
         .fromConnectionString[F](config.connectionUri)
         .evalMap(_.getDatabase(config.name))
 
-    def articleProducer(config: KafkaConfig): Resource[F, Producer[F, Unit, CreateArticleCommand]] =
-      CreateArticleCommand.makeProducer[F](config)
-
     for {
-      db              <- mongoDb(config.mongo)
-      backend         <- clientBackend(config.client)
-      articleProducer <- articleProducer(config.kafka)
+      db                   <- mongoDb(config.mongo)
+      backend              <- clientBackend(config.client)
+      articleProducer      <- CreateArticleCommand.makeProducer[F](config.kafka)
+      serviceEventProducer <- ServiceEvent.makeProducer[F](config.kafka)
     } yield new ApplicationResources[F] {
       override val httpClientBackend: SttpBackend[F, Any]                         = backend
       override val mongo: MongoDatabase[F]                                        = db
       override val createArticleProducer: Producer[F, Unit, CreateArticleCommand] = articleProducer
+      override val serviceEventsProducer: Producer[F, Unit, ServiceEvent]         = serviceEventProducer
     }
   }
 }

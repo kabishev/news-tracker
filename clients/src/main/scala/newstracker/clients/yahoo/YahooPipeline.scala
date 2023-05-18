@@ -12,16 +12,20 @@ import newstracker.clients.yahoo.db.ArticleRepository
 import newstracker.clients.yahoo.domain._
 import newstracker.kafka.Producer
 import newstracker.kafka.command.CreateArticleCommand
+import newstracker.kafka.event.ServiceEvent
 
 import java.time.LocalDate
 
-final private[yahoo] class LiveYahooPipeline[F[_]: Async: Logger](
+final private[yahoo] class LiveYahooPipeline[F[_]: Async](
     config: YahooConfig,
     client: YahooClient[F],
     service: ArticleService[F],
-    createArticleProducer: Producer[F, Unit, CreateArticleCommand]
+    createArticleProducer: Producer[F, Unit, CreateArticleCommand],
+    serviceEventsProducer: Producer[F, Unit, ServiceEvent]
 ) extends SearchPipeline[F] {
   import YahooSearchPipeline._
+
+  val serviceName = s"yahoo-${config.nameSuffix}"
 
   override def search(): F[Unit] = {
     def searchStream: Stream[F, Unit] = Stream
@@ -34,18 +38,35 @@ final private[yahoo] class LiveYahooPipeline[F[_]: Async: Logger](
       }
       .unNone
       .evalTap(uuids => service.create(uuids.map(uuid => CreateArticle(uuid, ArticleCreatedAt(LocalDate.now())))))
-      .flatMap(uuids => Stream.emits(uuids.toList))
-      .evalMap(client.getArticleDetails(_).map(details => ((), details.toCreateArticleCommand)))
+      .flatMap { uuids =>
+        Stream.eval(
+          serviceEventsProducer.produceOne(
+            ServiceEvent.makeTaskCompletedEvent(serviceName, s"Found ${uuids.size} new articles")
+          )
+        ) >> Stream.emits(uuids.toList)
+      }
+      .evalMap(client.getArticleDetails(_).map(details => ((), details.toCreateArticleCommand(config.region))))
       .through(createArticleProducer.pipe)
-      .handleErrorWith(error => Stream.eval(Logger[F].error(s"search failed: ${error.getMessage}")) >> searchStream)
+      .handleErrorWith { error =>
+        Stream.eval(
+          serviceEventsProducer.produceOne(
+            ServiceEvent.makeErrorEvent(
+              s"yahoo-${config.nameSuffix}",
+              s"Error while searching for new articles: ${error.getMessage}"
+            )
+          )
+        ) >> searchStream
+      }
 
-    searchStream.compile.drain
+    searchStream
+      .concurrently(Stream.eval(serviceEventsProducer.produceOne(ServiceEvent.makeOnlineEvent(serviceName))))
+      .onFinalize(serviceEventsProducer.produceOne(ServiceEvent.makeOfflineEvent(serviceName)))
+      .compile
+      .drain
   }
 }
 
 object YahooSearchPipeline {
-  val region = "de"
-
   def make[F[_]: Async: Logger](
       config: YahooConfig,
       resources: ApplicationResources[F]
@@ -54,10 +75,10 @@ object YahooSearchPipeline {
       client     <- YahooClient.make[F](config, resources)
       repository <- ArticleRepository.make[F](resources.mongo)
       service    <- ArticleService.make[F](repository)
-    } yield new LiveYahooPipeline[F](config, client, service, resources.createArticleProducer)
+    } yield new LiveYahooPipeline[F](config, client, service, resources.createArticleProducer, resources.serviceEventsProducer)
 
   implicit class ArticleDetailsOps(val details: ArticleDetails) extends AnyVal {
-    def toCreateArticleCommand = CreateArticleCommand(
+    def toCreateArticleCommand(region: String) = CreateArticleCommand(
       details.title.value,
       details.content.value,
       details.createdAt.value,

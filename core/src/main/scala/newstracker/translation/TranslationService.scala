@@ -113,8 +113,7 @@ final private class LiveTranslationService[F[_]: Async: Logger](
               serviceEventProducer.produceOne(
                 ServiceEvent.makeTaskCompletedEvent(
                   config.name,
-                  s"translation completed: id = ${translationId.value}, language = ${targetLanguage.value}",
-                  System.currentTimeMillis() - startTime
+                  s"Translation (${targetLanguage.value}) completed: duration = ${System.currentTimeMillis() - startTime} ms"
                 )
               )
           }

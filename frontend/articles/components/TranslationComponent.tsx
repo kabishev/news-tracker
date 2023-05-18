@@ -89,13 +89,13 @@ export const TranslationComponent: React.FC = () => {
     }
 
     const localization = translation
-      .localizations
-      .find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())
+      ?.localizations
+      ?.find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())
 
     if (!localization) {
       translateContent(selectedArticleId, selectedLocalizationCode)
     }
-  }, [selectedArticleId, translation, selectedLocalizationCode])
+  }, [selectedArticleId, translation, selectedLocalizationCode, translateContent])
 
   const localizations = (translation && translation.localizations) ?? []
   const content = localizations.find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())?.content
