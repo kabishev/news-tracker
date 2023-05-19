@@ -24,7 +24,12 @@ export const ArticlesContextProvider: React.FC<React.PropsWithChildren> = ({ chi
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/api/articles`)
       const data: Article[] = await res.json()
-      setStore(setArticles(data))
+      const sorted = data.sort((a, b) => a.addedAt < b.addedAt ? 1 : -1)
+      const articles = sorted.map(article => ({
+        ...article,
+        createdAt: new Date(article.createdAt).toLocaleDateString(),
+      }))
+      setStore(setArticles(articles))
     } catch (e) {
       console.error(e)
     }

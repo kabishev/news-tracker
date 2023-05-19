@@ -1,7 +1,7 @@
 import com.typesafe.sbt.packager.docker._
 
 ThisBuild / scalaVersion := "2.13.10"
-ThisBuild / version      := "0.1.0-SNAPSHOT"
+ThisBuild / version      := "0.1.1"
 ThisBuild / organization := "io.github.kabishev"
 ThisBuild / scalafixDependencies ++= Dependencies.scalafix
 
@@ -66,18 +66,6 @@ lazy val core = project
     libraryDependencies ++= Dependencies.core ++ Dependencies.testCore
   )
 
-lazy val kafka = project
-  .in(file("kafka"))
-  .settings(common)
-  .settings(
-    name       := "news-tracker-kafka",
-    moduleName := "news-tracker-kafka",
-    resolvers ++= Seq(
-      "io.confluent".at("https://packages.confluent.io/maven/")
-    ),
-    libraryDependencies ++= Dependencies.kafka ++ Dependencies.testKafka
-  )
-
 lazy val clients = project
   .in(file("clients"))
   .dependsOn(kafka)
@@ -89,6 +77,18 @@ lazy val clients = project
     moduleName           := "news-tracker-clients",
     Docker / packageName := "news-tracker-clients",
     libraryDependencies ++= Dependencies.clients ++ Dependencies.testClients
+  )
+
+lazy val kafka = project
+  .in(file("kafka"))
+  .settings(common)
+  .settings(
+    name       := "news-tracker-kafka",
+    moduleName := "news-tracker-kafka",
+    resolvers ++= Seq(
+      "io.confluent".at("https://packages.confluent.io/maven/")
+    ),
+    libraryDependencies ++= Dependencies.kafka ++ Dependencies.testKafka
   )
 
 lazy val root = project

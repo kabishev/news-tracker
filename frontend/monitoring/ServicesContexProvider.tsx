@@ -36,8 +36,7 @@ export const ServicesContextProvider: React.FC<React.PropsWithChildren<{}>> = ({
 
     if (event.TaskCompleted) {
       const ev = event.TaskCompleted
-      const duration = new Date(ev.duration).getMilliseconds()
-      setServices(addServiceMessage(ev.serviceName, ev.id, `${ev.description}, ${duration} ms`, 'success'))
+      setServices(addServiceMessage(ev.serviceName, ev.id, ev.description, 'success'))
     }
 
   }, [lastMessage])

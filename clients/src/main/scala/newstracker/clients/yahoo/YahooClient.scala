@@ -24,7 +24,6 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Logger](
     config: YahooConfig,
     backend: SttpBackend[F, Any]
 ) extends YahooClient[F] {
-  import YahooClient._
 
   private val headers: Map[String, String] = Map(
     "X-RapidAPI-Host" -> config.apiHost,
@@ -43,7 +42,7 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Logger](
   override def getNewArticleIds(): F[List[ArticleUuid]] =
     retryingOnAllErrors[List[ArticleUuid]](policy, logError) {
       basicRequest
-        .post(uri"${config.baseUri}/news/v2/list?region=$region")
+        .post(uri"${config.baseUri}/news/v2/list?region=${config.region}")
         .header(HeaderNames.ContentType, MediaType.TextPlain.toString())
         .headers(headers)
         .response(asJson[NewsList.Response])
@@ -59,7 +58,7 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Logger](
   override def getArticleDetails(articleId: ArticleUuid): F[ArticleDetails] =
     retryingOnAllErrors[ArticleDetails](policy, logError) {
       basicRequest
-        .get(uri"${config.baseUri}/news/v2/get-details?uuid=${articleId.value}&region=$region")
+        .get(uri"${config.baseUri}/news/v2/get-details?uuid=${articleId.value}&region=${config.region}")
         .headers(headers)
         .response(asJson[NewsGetDetails.Response])
         .send(backend)
@@ -73,8 +72,6 @@ final private[yahoo] class LiveYahooRapidClient[F[_]: Async: Logger](
 }
 
 object YahooClient {
-  val region = "de"
-
   def make[F[_]: Async: Logger](
       config: YahooConfig,
       resources: ApplicationResources[F]

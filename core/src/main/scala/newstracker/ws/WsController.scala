@@ -43,10 +43,10 @@ final private class WsController[F[_]: Async: Logger](
           .evalTap(ev => Logger[F].info(s"Received service event: $ev"))
           .map { ev =>
             ev.record.value match {
-              case ServiceEvent.OnlineEvent(id, name)                        => WsEvent.ServiceOnline(id, name)
-              case ServiceEvent.OfflineEvent(id, name)                       => WsEvent.ServiceOffline(id, name)
-              case ServiceEvent.ErrorEvent(id, name, error)                  => WsEvent.ServiceError(id, name, error)
-              case ServiceEvent.TaskCompletedEvent(id, name, desc, duration) => WsEvent.TaskCompleted(id, name, desc, duration)
+              case ServiceEvent.OnlineEvent(id, name)              => WsEvent.ServiceOnline(id, name)
+              case ServiceEvent.OfflineEvent(id, name)             => WsEvent.ServiceOffline(id, name)
+              case ServiceEvent.ErrorEvent(id, name, error)        => WsEvent.ServiceError(id, name, error)
+              case ServiceEvent.TaskCompletedEvent(id, name, desc) => WsEvent.TaskCompleted(id, name, desc)
             }
           }
 

@@ -5,6 +5,7 @@ final case class ArticleDetails(
     authors: ArticleAuthors,
     title: ArticleTitle,
     createdAt: ArticleCreatedAt,
+    addedAt: ArticleAddedAt,
     content: ArticleContent,
     summary: ArticleSummary,
     url: ArticleUrl,

@@ -36,6 +36,7 @@ final private class LiveArticleKafka[F[_]: Async](
         title = ArticleTitle(event.title),
         content = ArticleContent(event.content),
         createdAt = ArticleCreatedAt(event.createdAt),
+        addedAt = ArticleAddedAt(event.addedAt),
         language = ArticleLanguage(event.language),
         authors = ArticleAuthors(event.authors),
         summary = event.summary.map(ArticleSummary(_)),

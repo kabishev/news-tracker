@@ -31,7 +31,6 @@ final private class LiveArticleRepository[F[_]: Async](private val collection: M
 
   override def getAll: Stream[F, Article] = // TODO: Needs to be refactored to better performance
     collection.find
-      .sortByDesc(Field.CreateAt)
       .stream
       .map(_.toDomain)
 

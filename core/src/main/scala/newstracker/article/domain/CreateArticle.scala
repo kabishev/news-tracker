@@ -4,6 +4,7 @@ final case class CreateArticle(
     title: ArticleTitle,
     content: ArticleContent,
     createdAt: ArticleCreatedAt,
+    addedAt: ArticleAddedAt,
     language: ArticleLanguage,
     authors: ArticleAuthors,
     summary: Option[ArticleSummary],

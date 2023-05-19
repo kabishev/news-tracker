@@ -5,6 +5,7 @@ final case class Article(
     title: ArticleTitle,
     content: ArticleContent,
     createdAt: ArticleCreatedAt,
+    addedAt: ArticleAddedAt,
     language: ArticleLanguage,
     authors: ArticleAuthors,
     summary: Option[ArticleSummary],

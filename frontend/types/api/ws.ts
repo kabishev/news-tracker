@@ -22,7 +22,6 @@ export type ServiceErrorEvent = ServiceEvent & {
 
 export type TaskCompletedEvent = ServiceEvent & {
   description: string;
-  duration: number;
 }
 
 export type WsEvent = {

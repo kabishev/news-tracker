@@ -14,7 +14,7 @@ GET {{endpoint}}/articles/6455d7cd41b8b40c25b9a713
 POST {{endpoint}}/articles
 Content-Type: application/json
 
-{"title": "title #1","content": "Hello World!","createdAt": "2023-05-18","language": "en","authors": "author #1"}
+{"title": "title #1","content": "Simple article","createdAt": "2023-05-19T14:30:45.123Z","addedAt": "2023-05-19T14:30:45.123Z","language": "de","authors": "author #1"}
 
 ### Health status
 GET http://localhost:8080/health/status

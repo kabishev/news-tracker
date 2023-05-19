@@ -49,7 +49,7 @@ export const TranslationComponent: React.FC = () => {
     }
   }
 
-  const translateContent = async (id: string, language: string) => {
+  const translateContent = React.useCallback(async (id: string, language: string) => {
     try {
       setWaitTranslation(language)
       await fetch(`${process.env.NEXT_PUBLIC_SERVER_ADDRESS}/api/translations/${id}/localizations/${language}`, {
@@ -63,7 +63,7 @@ export const TranslationComponent: React.FC = () => {
       setWaitTranslation(selectedLocalizationCode)
       console.error(e)
     }
-  }
+  }, [selectedLocalizationCode])
 
   useEffect(() => {
     const event: WsEvent | null = JSON.parse(lastMessage?.data || null)
@@ -89,13 +89,13 @@ export const TranslationComponent: React.FC = () => {
     }
 
     const localization = translation
-      .localizations
-      .find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())
+      ?.localizations
+      ?.find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())
 
     if (!localization) {
       translateContent(selectedArticleId, selectedLocalizationCode)
     }
-  }, [selectedArticleId, translation, selectedLocalizationCode])
+  }, [selectedArticleId, translation, selectedLocalizationCode, translateContent])
 
   const localizations = (translation && translation.localizations) ?? []
   const content = localizations.find(({ language }) => language.toLowerCase() === selectedLocalizationCode.toLowerCase())?.content

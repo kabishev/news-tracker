@@ -6,14 +6,15 @@ import mongo4cats.bson.{Document, ObjectId}
 import newstracker.article.domain.ArticleId
 import newstracker.translation.domain.{Localization, TranslationId}
 
-import java.time.{Instant, LocalDate}
+import java.time.Instant
 
 trait MongoOps {
   def articleDocument(
       id: ArticleId,
       title: String,
       content: String,
-      createdAt: LocalDate = LocalDate.now(),
+      createdAt: Instant = Instant.now(),
+      addedAt: Instant = Instant.now(),
       language: String = "en",
       authors: String = "Ivan Ivanov",
       tags: List[String] = List.empty
@@ -21,7 +22,8 @@ trait MongoOps {
     "_id"       -> ObjectId(id.value).toBson,
     "title"     -> title.toBson,
     "content"   -> content.toBson,
-    "createdAt" -> Instant.ofEpochSecond(createdAt.toEpochDay * 86400).toBson,
+    "createdAt" -> createdAt.toBson,
+    "addedAt"   -> addedAt.toBson,
     "language"  -> language.toBson,
     "authors"   -> authors.toBson,
     "tags"      -> tags.toBson

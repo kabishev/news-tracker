@@ -13,15 +13,10 @@ sealed trait ServiceEvent
 object ServiceEvent {
   private val topic = "service-events"
 
-  final case class OnlineEvent(id: String, serviceName: String)               extends ServiceEvent
-  final case class OfflineEvent(id: String, serviceName: String)              extends ServiceEvent
-  final case class ErrorEvent(id: String, serviceName: String, error: String) extends ServiceEvent
-  final case class TaskCompletedEvent(
-      id: String,
-      serviceName: String,
-      description: String,
-      duration: Long
-  ) extends ServiceEvent
+  final case class OnlineEvent(id: String, serviceName: String)                             extends ServiceEvent
+  final case class OfflineEvent(id: String, serviceName: String)                            extends ServiceEvent
+  final case class ErrorEvent(id: String, serviceName: String, error: String)               extends ServiceEvent
+  final case class TaskCompletedEvent(id: String, serviceName: String, description: String) extends ServiceEvent
 
   def makeOnlineEvent(serviceName: String): ServiceEvent =
     OnlineEvent(UUID.randomUUID().toString, serviceName)
@@ -32,8 +27,8 @@ object ServiceEvent {
   def makeErrorEvent(serviceName: String, error: String): ServiceEvent =
     ErrorEvent(UUID.randomUUID().toString, serviceName, error)
 
-  def makeTaskCompletedEvent(serviceName: String, description: String, duration: Long): ServiceEvent =
-    TaskCompletedEvent(UUID.randomUUID().toString, serviceName, description, duration)
+  def makeTaskCompletedEvent(serviceName: String, description: String): ServiceEvent =
+    TaskCompletedEvent(UUID.randomUUID().toString, serviceName, description)
 
   def makeConsumer[F[_]: Async](config: KafkaConfig): Resource[F, KafkaConsumer[F, Unit, ServiceEvent]] =
     Consumer

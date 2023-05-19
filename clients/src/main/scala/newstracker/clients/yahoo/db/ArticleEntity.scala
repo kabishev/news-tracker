@@ -4,12 +4,12 @@ import mongo4cats.bson.ObjectId
 
 import newstracker.clients.yahoo.domain._
 
-import java.time.LocalDate
+import java.time.Instant
 
 final case class ArticleEntity(
     _id: ObjectId,
     uuid: String,
-    createdAt: LocalDate
+    createdAt: Instant
 ) {
   def toDomain: Article =
     Article(
