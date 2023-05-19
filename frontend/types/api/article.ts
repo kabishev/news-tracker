@@ -3,6 +3,7 @@ export interface Article {
   title: string;
   content: string;
   createdAt: string;
+  addedAt: string;
   language: string;
   authors: string;
   summary: string | null;

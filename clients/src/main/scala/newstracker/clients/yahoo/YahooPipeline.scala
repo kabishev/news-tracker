@@ -14,7 +14,7 @@ import newstracker.kafka.Producer
 import newstracker.kafka.command.CreateArticleCommand
 import newstracker.kafka.event.ServiceEvent
 
-import java.time.LocalDate
+import java.time.Instant
 
 final private[yahoo] class LiveYahooPipeline[F[_]: Async](
     config: YahooConfig,
@@ -37,7 +37,7 @@ final private[yahoo] class LiveYahooPipeline[F[_]: Async](
         } yield NonEmptyList.fromList(newArticleIds.filterNot(storedUuids.contains))
       }
       .unNone
-      .evalTap(uuids => service.create(uuids.map(uuid => CreateArticle(uuid, ArticleCreatedAt(LocalDate.now())))))
+      .evalTap(uuids => service.create(uuids.map(uuid => CreateArticle(uuid, ArticleCreatedAt(Instant.now())))))
       .flatMap { uuids =>
         Stream.eval(
           serviceEventsProducer.produceOne(
@@ -82,6 +82,7 @@ object YahooSearchPipeline {
       details.title.value,
       details.content.value,
       details.createdAt.value,
+      details.addedAt.value,
       region,
       details.authors.value,
       details.summary.value.some,

@@ -6,12 +6,13 @@ import io.circe.generic.auto._
 
 import newstracker.kafka._
 
-import java.time.LocalDate
+import java.time.Instant
 
 final case class CreateArticleCommand(
     title: String,
     content: String,
-    createdAt: LocalDate,
+    createdAt: Instant,
+    addedAt: Instant,
     language: String,
     authors: String,
     summary: Option[String],

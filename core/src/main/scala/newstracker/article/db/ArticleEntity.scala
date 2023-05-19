@@ -4,13 +4,14 @@ import mongo4cats.bson.ObjectId
 
 import newstracker.article.domain._
 
-import java.time.LocalDate
+import java.time.Instant
 
 final case class ArticleEntity(
     _id: ObjectId,
     title: String,
     content: String,
-    createdAt: LocalDate,
+    createdAt: Instant,
+    addedAt: Instant,
     language: String,
     authors: String,
     summary: Option[String],
@@ -24,6 +25,7 @@ final case class ArticleEntity(
       title = ArticleTitle(title),
       content = ArticleContent(content),
       createdAt = ArticleCreatedAt(createdAt),
+      addedAt = ArticleAddedAt(addedAt),
       language = ArticleLanguage(language),
       authors = ArticleAuthors(authors),
       summary = summary.map(ArticleSummary(_)),
@@ -41,6 +43,7 @@ object ArticleEntity {
       title = article.title.value,
       content = article.content.value,
       createdAt = article.createdAt.value,
+      addedAt = article.addedAt.value,
       language = article.language.value,
       authors = article.authors.value,
       summary = article.summary.map(_.value),
@@ -55,6 +58,7 @@ object ArticleEntity {
       title = article.title.value,
       content = article.content.value,
       createdAt = article.createdAt.value,
+      addedAt = article.addedAt.value,
       language = article.language.value,
       authors = article.authors.value,
       summary = article.summary.map(_.value),

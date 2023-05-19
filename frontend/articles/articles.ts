@@ -26,13 +26,19 @@ export const setVisitedArticles = (articleIds: string[]) => (prev: ArticlesStore
   visitedArticleIds: articleIds,
 });
 
-export const setSelectedArticle = (articleId: string | null) => (prev: ArticlesStore): ArticlesStore => ({
-  ...prev,
-  selectedArticleId: articleId,
-  visitedArticleIds: articleId
-    ? [...((prev.visitedArticleIds).filter(id => id !== articleId)), articleId]
-    : prev.visitedArticleIds,
-});
+export const setSelectedArticle = (articleId: string | null) => (prev: ArticlesStore): ArticlesStore =>
+  prev.articles.find(article => article.id === articleId)
+    ? ({
+      ...prev,
+      selectedArticleId: articleId,
+      visitedArticleIds: articleId
+        ? [...((prev.visitedArticleIds).filter(id => id !== articleId)), articleId]
+        : prev.visitedArticleIds,
+    }) : ({
+      ...prev,
+      selectedArticleId: null,
+    })
+
 
 export const setTranslation = (
   translation: Translation,

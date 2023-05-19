@@ -15,6 +15,7 @@ trait Repository[F[_]] {
     val Title    = "title"
     val Content  = "content"
     val CreateAt = "createdAt"
+    val AddedAt  = "addedAt"
     val Language = "language"
     val Authors  = "authors"
     val Summary  = "summary"

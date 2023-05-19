@@ -14,7 +14,7 @@ import sttp.tapir.server.http4s.Http4sServerInterpreter
 import newstracker.article.domain._
 import newstracker.common.Controller
 
-import java.time.LocalDate
+import java.time.Instant
 
 final private class ArticleController[F[_]: Async](
     private val service: ArticleService[F]
@@ -86,7 +86,8 @@ object ArticleController {
   final case class CreateArticleRequest(
       title: NonEmptyString,
       content: NonEmptyString,
-      createdAt: LocalDate,
+      createdAt: Instant,
+      addedAt: Instant,
       language: NonEmptyString,
       authors: NonEmptyString,
       summary: Option[String],
@@ -98,6 +99,7 @@ object ArticleController {
       ArticleTitle(title.value),
       ArticleContent(content.value),
       ArticleCreatedAt(createdAt),
+      ArticleAddedAt(addedAt),
       ArticleLanguage(language.value),
       ArticleAuthors(authors.value),
       summary.map(ArticleSummary(_)),
@@ -112,7 +114,8 @@ object ArticleController {
   final case class UpdateArticleRequest(
       title: NonEmptyString,
       content: NonEmptyString,
-      createdAt: LocalDate,
+      createdAt: Instant,
+      addedAt: Instant,
       language: NonEmptyString,
       authors: NonEmptyString,
       summary: Option[String],
@@ -126,6 +129,7 @@ object ArticleController {
         ArticleTitle(title.value),
         ArticleContent(content.value),
         ArticleCreatedAt(createdAt),
+        ArticleAddedAt(addedAt),
         ArticleLanguage(language.value),
         ArticleAuthors(authors.value),
         summary.map(ArticleSummary(_)),
@@ -138,7 +142,8 @@ object ArticleController {
   final case class ArticleView(
       id: String,
       title: String,
-      createdAt: LocalDate,
+      createdAt: Instant,
+      addedAt: Instant,
       language: String,
       authors: String,
       summary: Option[String],
@@ -152,6 +157,7 @@ object ArticleController {
       article.id.value,
       article.title.value,
       article.createdAt.value,
+      article.addedAt.value,
       article.language.value,
       article.authors.value,
       article.summary.map(_.value),

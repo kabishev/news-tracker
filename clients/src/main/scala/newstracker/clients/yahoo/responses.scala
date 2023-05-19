@@ -4,7 +4,7 @@ import io.circe.generic.semiauto._
 
 import newstracker.clients.yahoo.domain._
 
-import java.time.{Instant, ZoneOffset}
+import java.time.Instant
 
 private object responses {
   object NewsList {
@@ -62,7 +62,8 @@ private object responses {
           uuid = ArticleUuid(content.id),
           authors = ArticleAuthors(content.authors.map(_.author.displayName).mkString(", ")),
           title = ArticleTitle(content.title),
-          createdAt = ArticleCreatedAt(Instant.parse(content.pubDate).atZone(ZoneOffset.UTC).toLocalDate()),
+          createdAt = ArticleCreatedAt(Instant.parse(content.pubDate)),
+          addedAt = ArticleAddedAt(Instant.now),
           content = ArticleContent(content.body.markup),
           summary = ArticleSummary(content.summary),
           url = ArticleUrl(content.canonicalUrl.url),

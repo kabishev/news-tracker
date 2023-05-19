@@ -50,7 +50,7 @@ final private class LiveTranslationService[F[_]: Async: Logger](
 
   private def createdArticleEventStream: Stream[F, Unit] =
     createdArticleEventConsumer.stream
-      .mapAsync(16) { commitable =>
+      .mapAsync(2) { commitable =>
         repository
           .create(commitable.record.value.toTranslation)
           .as(commitable.offset)
@@ -69,7 +69,7 @@ final private class LiveTranslationService[F[_]: Async: Logger](
 
   private def translateCommandStream: Stream[F, Unit] =
     translateCommandConsumer.stream
-      .mapAsync(16) { commitable =>
+      .mapAsync(2) { commitable =>
         repository
           .get(TranslationId(commitable.record.value.id))
           .flatMap { tr =>
