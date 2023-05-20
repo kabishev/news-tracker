@@ -30,6 +30,7 @@ export const ArticlesContextProvider: React.FC<React.PropsWithChildren> = ({ chi
         createdAt: new Date(article.createdAt).toLocaleDateString(),
       }))
       setStore(setArticles(articles))
+      setStore(setSelectedArticle(store.selectedArticleId ?? localStorage.getItem('selectedArticleId') ?? ''))
     } catch (e) {
       console.error(e)
     }
@@ -37,7 +38,6 @@ export const ArticlesContextProvider: React.FC<React.PropsWithChildren> = ({ chi
 
   React.useEffect(() => {
     setStore(setVisitedArticles(JSON.parse(localStorage.getItem('visitedArticleIds') ?? '[]')))
-    setStore(setSelectedArticle(localStorage.getItem('selectedArticleId') ?? null))
     setStore(setSelectedLocalization(localStorage.getItem('selectedLocalizationCode') ?? 'de'))
     fetchArticles()
   }, [])
@@ -54,6 +54,7 @@ export const ArticlesContextProvider: React.FC<React.PropsWithChildren> = ({ chi
     setSelectedArticle: (articleId: string) => setStore(prev => {
       const next = setSelectedArticle(articleId)(prev)
       localStorage.setItem('selectedArticleId', next.selectedArticleId || '')
+      localStorage.setItem('visitedArticleIds', JSON.stringify(next.visitedArticleIds))
       return next
     }),
     setSelectedLocalization: (code: string) => setStore(prev => {

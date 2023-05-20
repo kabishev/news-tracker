@@ -75,15 +75,11 @@ export const ArticlesComponent: React.FC = () => {
 
   const selected = articles.findIndex((article) => article.id === selectedArticleId)
 
-  const ref = React.createRef<FixedSizeList>()
-  React.useEffect(() => ref.current?.scrollToItem(selected, 'smart'), [ref, selected])
-
   return !ready ? <CircularProgress /> : (
     <Grid container spacing={3}>
       <Grid item xs={12} md={4}>
         <Box sx={{ width: "100%", bgcolor: "background.paper" }} >
           <FixedSizeList
-            ref={ref}
             itemData={articles}
             height={matches ? 700 : 200}
             width="100%"
