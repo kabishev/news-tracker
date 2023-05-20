@@ -4,6 +4,8 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.kafka._
+import org.jsoup.Jsoup
+import org.jsoup.nodes._
 import org.typelevel.log4cats.Logger
 
 import newstracker.common.Service
@@ -32,6 +34,7 @@ final private class LiveTranslationService[F[_]: Async: Logger](
     private val translateCommandConsumer: KafkaConsumer[F, Unit, TranslateCommand],
     private val serviceEventProducer: Producer[F, Unit, ServiceEvent]
 ) extends TranslationService[F] {
+  import TranslationService._
 
   override def isValidId(id: String): Boolean = repository.isValidId(id)
 
@@ -96,14 +99,16 @@ final private class LiveTranslationService[F[_]: Async: Logger](
     translation.localizations.find(_.language == targetLanguage) match {
       case None =>
         val original = translation.localizations.head
+        val content  = original.content.value
+
         deeplClient
-          .translate(original.content.value, original.language.value, targetLanguage.value)
+          .translate(getCaasNodeText(content), original.language.value, targetLanguage.value)
           .flatMap { translated =>
             Logger[F].info(s"translation received: id = ${translationId.value}, language = ${targetLanguage.value}") >>
               repository.update(
                 Translation(
                   translationId,
-                  translation.localizations :+ Localization(targetLanguage, LocalizationContent(translated))
+                  translation.localizations :+ Localization(targetLanguage, LocalizationContent(setCaasNodeText(content, translated)))
                 )
               )
           }
@@ -157,4 +162,19 @@ object TranslationService {
         serviceEventProducer
       )
     )
+
+  private[translation] def getCaasNodeText(html: String): String =
+    Jsoup.parse(html).select("div.caas-body").html()
+
+  private[translation] def setCaasNodeText(html: String, translated: String): String = {
+    val document: Document = Jsoup.parse(html)
+    val outputSettings = document
+      .outputSettings()
+      .clone()
+      .indentAmount(0)
+      .prettyPrint(false)
+      .escapeMode(Entities.EscapeMode.xhtml)
+
+    document.outputSettings(outputSettings).select("div.caas-body").html(translated).html()
+  }
 }
