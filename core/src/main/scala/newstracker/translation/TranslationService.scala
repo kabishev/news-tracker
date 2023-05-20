@@ -175,6 +175,11 @@ object TranslationService {
       .prettyPrint(false)
       .escapeMode(Entities.EscapeMode.xhtml)
 
-    document.outputSettings(outputSettings).select("div.caas-body").html(translated).html()
+    document.outputSettings(outputSettings)
+
+    val caasNode = document.select("div.caas-body").html(translated)
+    document.select("div.caas-body").first().replaceWith(caasNode.first())
+
+    document.html()
   }
 }
