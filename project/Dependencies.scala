@@ -10,6 +10,7 @@ object Dependencies {
     val contextApplied  = "0.1.4"
     val fs2             = "3.7.0"
     val http4s          = "0.23.19"
+    val jsoup           = "1.16.1"
     val kafka           = "2.5.0"
     val kindProjector   = "0.13.2"
     val log4cats        = "2.6.0"
@@ -27,9 +28,10 @@ object Dependencies {
   }
 
   object Libraries {
+    val nameof          = "com.github.dwickern"  %% "scala-nameof"     % Versions.nameOf % "provided"
     val newtype         = "io.estatico"          %% "newtype"          % Versions.newtype
     val organizeImports = "com.github.liancheng" %% "organize-imports" % Versions.organizeImports
-    val nameof          = "com.github.dwickern"  %% "scala-nameof"     % Versions.nameOf % "provided"
+    val jsoup           = "org.jsoup"             % "jsoup"            % Versions.jsoup
 
     object cats {
       val core          = "org.typelevel"    %% "cats-core"      % Versions.cats
@@ -118,7 +120,8 @@ object Dependencies {
         Libraries.fs2.core,
         Libraries.pureConfig.core,
         Libraries.newtype,
-        Libraries.cats.retry
+        Libraries.cats.retry,
+        Libraries.jsoup,
       )
 
   lazy val testCore = Seq(

@@ -26,6 +26,7 @@ final private class LiveTranslationService[F[_]: Async: Logger](
     private val config: TranslationServiceConfig,
     private val repository: TranslationRepository[F],
     private val deeplClient: DeeplClient[F],
+    private val textProcessor: TextProcessor[F],
     private val createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
     private val translatedEventProducer: Producer[F, Unit, TranslatedEvent],
     private val translateCommandProducer: Producer[F, Unit, TranslateCommand],
@@ -96,27 +97,26 @@ final private class LiveTranslationService[F[_]: Async: Logger](
     translation.localizations.find(_.language == targetLanguage) match {
       case None =>
         val original = translation.localizations.head
-        deeplClient
-          .translate(original.content.value, original.language.value, targetLanguage.value)
-          .flatMap { translated =>
-            Logger[F].info(s"translation received: id = ${translationId.value}, language = ${targetLanguage.value}") >>
-              repository.update(
-                Translation(
-                  translationId,
-                  translation.localizations :+ Localization(targetLanguage, LocalizationContent(translated))
-                )
-              )
-          }
-          .flatMap { updatedTranslation =>
-            Logger[F].info(s"translation updated: id = ${translationId.value}, language = ${targetLanguage.value}") >>
-              translatedEventProducer.produceOne(TranslatedEvent(updatedTranslation.id.value, targetLanguage.value)) >>
-              serviceEventProducer.produceOne(
-                ServiceEvent.makeTaskCompletedEvent(
-                  config.name,
-                  s"Translation (${targetLanguage.value}) completed: duration = ${System.currentTimeMillis() - startTime} ms"
-                )
-              )
-          }
+        val content  = original.content.value
+
+        for {
+          preprocessed  <- textProcessor.preprocessing(content)
+          translated    <- deeplClient.translate(preprocessed, original.language.value, targetLanguage.value)
+          _             <- Logger[F].info(s"translation received: id = ${translationId.value}, language = ${targetLanguage.value}")
+          postprocessed <- textProcessor.postprocessing(content, translated)
+          newTranslation = Translation(
+            translationId,
+            translation.localizations :+ Localization(targetLanguage, LocalizationContent(postprocessed))
+          )
+          updatedTranslation <- repository.update(newTranslation)
+          _                  <- Logger[F].info(s"translation updated: id = ${translationId.value}, language = ${targetLanguage.value}")
+          _                  <- translatedEventProducer.produceOne(TranslatedEvent(updatedTranslation.id.value, targetLanguage.value))
+          event = ServiceEvent.makeTaskCompletedEvent(
+            config.name,
+            s"Translation (${targetLanguage.value}) completed: duration = ${System.currentTimeMillis() - startTime} ms"
+          )
+          _ <- serviceEventProducer.produceOne(event)
+        } yield ()
       case Some(_) => ().pure[F]
     }
   }
@@ -139,6 +139,7 @@ object TranslationService {
   def make[F[_]: Async: Logger](
       repository: TranslationRepository[F],
       deeplClient: DeeplClient[F],
+      textProcessor: TextProcessor[F],
       createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
       translatedEventProducer: Producer[F, Unit, TranslatedEvent],
       translateCommandProducer: Producer[F, Unit, TranslateCommand],
@@ -150,6 +151,7 @@ object TranslationService {
         TranslationServiceConfig("translation-service"),
         repository,
         deeplClient,
+        textProcessor,
         createdArticleEventConsumer,
         translatedEventProducer,
         translateCommandProducer,
