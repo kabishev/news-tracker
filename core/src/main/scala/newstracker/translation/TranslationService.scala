@@ -4,8 +4,6 @@ import cats.effect._
 import cats.syntax.all._
 import fs2.Stream
 import fs2.kafka._
-import org.jsoup.Jsoup
-import org.jsoup.nodes._
 import org.typelevel.log4cats.Logger
 
 import newstracker.common.Service
@@ -28,13 +26,13 @@ final private class LiveTranslationService[F[_]: Async: Logger](
     private val config: TranslationServiceConfig,
     private val repository: TranslationRepository[F],
     private val deeplClient: DeeplClient[F],
+    private val textProcessor: TextProcessor[F],
     private val createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
     private val translatedEventProducer: Producer[F, Unit, TranslatedEvent],
     private val translateCommandProducer: Producer[F, Unit, TranslateCommand],
     private val translateCommandConsumer: KafkaConsumer[F, Unit, TranslateCommand],
     private val serviceEventProducer: Producer[F, Unit, ServiceEvent]
 ) extends TranslationService[F] {
-  import TranslationService._
 
   override def isValidId(id: String): Boolean = repository.isValidId(id)
 
@@ -101,27 +99,24 @@ final private class LiveTranslationService[F[_]: Async: Logger](
         val original = translation.localizations.head
         val content  = original.content.value
 
-        deeplClient
-          .translate(getCaasNodeText(content), original.language.value, targetLanguage.value)
-          .flatMap { translated =>
-            Logger[F].info(s"translation received: id = ${translationId.value}, language = ${targetLanguage.value}") >>
-              repository.update(
-                Translation(
-                  translationId,
-                  translation.localizations :+ Localization(targetLanguage, LocalizationContent(setCaasNodeText(content, translated)))
-                )
-              )
-          }
-          .flatMap { updatedTranslation =>
-            Logger[F].info(s"translation updated: id = ${translationId.value}, language = ${targetLanguage.value}") >>
-              translatedEventProducer.produceOne(TranslatedEvent(updatedTranslation.id.value, targetLanguage.value)) >>
-              serviceEventProducer.produceOne(
-                ServiceEvent.makeTaskCompletedEvent(
-                  config.name,
-                  s"Translation (${targetLanguage.value}) completed: duration = ${System.currentTimeMillis() - startTime} ms"
-                )
-              )
-          }
+        for {
+          preprocessed  <- textProcessor.preprocessing(content)
+          translated    <- deeplClient.translate(preprocessed, original.language.value, targetLanguage.value)
+          _             <- Logger[F].info(s"translation received: id = ${translationId.value}, language = ${targetLanguage.value}")
+          postprocessed <- textProcessor.postprocessing(content, translated)
+          newTranslation = Translation(
+            translationId,
+            translation.localizations :+ Localization(targetLanguage, LocalizationContent(postprocessed))
+          )
+          updatedTranslation <- repository.update(newTranslation)
+          _                  <- Logger[F].info(s"translation updated: id = ${translationId.value}, language = ${targetLanguage.value}")
+          _                  <- translatedEventProducer.produceOne(TranslatedEvent(updatedTranslation.id.value, targetLanguage.value))
+          event = ServiceEvent.makeTaskCompletedEvent(
+            config.name,
+            s"Translation (${targetLanguage.value}) completed: duration = ${System.currentTimeMillis() - startTime} ms"
+          )
+          _ <- serviceEventProducer.produceOne(event)
+        } yield ()
       case Some(_) => ().pure[F]
     }
   }
@@ -144,6 +139,7 @@ object TranslationService {
   def make[F[_]: Async: Logger](
       repository: TranslationRepository[F],
       deeplClient: DeeplClient[F],
+      textProcessor: TextProcessor[F],
       createdArticleEventConsumer: KafkaConsumer[F, Unit, CreatedArticleEvent],
       translatedEventProducer: Producer[F, Unit, TranslatedEvent],
       translateCommandProducer: Producer[F, Unit, TranslateCommand],
@@ -155,6 +151,7 @@ object TranslationService {
         TranslationServiceConfig("translation-service"),
         repository,
         deeplClient,
+        textProcessor,
         createdArticleEventConsumer,
         translatedEventProducer,
         translateCommandProducer,
@@ -162,24 +159,4 @@ object TranslationService {
         serviceEventProducer
       )
     )
-
-  private[translation] def getCaasNodeText(html: String): String =
-    Jsoup.parse(html).select("div.caas-body").html()
-
-  private[translation] def setCaasNodeText(html: String, translated: String): String = {
-    val document: Document = Jsoup.parse(html)
-    val outputSettings = document
-      .outputSettings()
-      .clone()
-      .indentAmount(0)
-      .prettyPrint(false)
-      .escapeMode(Entities.EscapeMode.xhtml)
-
-    document.outputSettings(outputSettings)
-
-    val caasNode = document.select("div.caas-body").html(translated)
-    document.select("div.caas-body").first().replaceWith(caasNode.first())
-
-    document.html()
-  }
 }

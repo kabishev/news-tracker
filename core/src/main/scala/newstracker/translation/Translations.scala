@@ -20,6 +20,7 @@ object Translations {
       svc <- TranslationService.make[F](
         repo,
         deepl,
+        TextProcessor.makeJsoupProcessor[F],
         resources.createdArticleEventConsumer,
         resources.translatedEventProducer,
         resources.translateCommandProducer,

@@ -31,6 +31,7 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
         .make[IO](
           mock[TranslationRepository[IO]],
           mock[DeeplClient[IO]],
+          mock[TextProcessor[IO]],
           mock[KafkaConsumer[IO, Unit, CreatedArticleEvent]],
           mock[Producer[IO, Unit, TranslatedEvent]],
           translateCommandProducer,
@@ -55,6 +56,7 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
         .make[IO](
           repo,
           mock[DeeplClient[IO]],
+          mock[TextProcessor[IO]],
           mock[KafkaConsumer[IO, Unit, CreatedArticleEvent]],
           mock[Producer[IO, Unit, TranslatedEvent]],
           mock[Producer[IO, Unit, TranslateCommand]],
@@ -87,6 +89,12 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
         )
       ).thenReturn(IO.pure(TranslationFixtures.deLoc.content.value))
 
+      val textProcessor = mock[TextProcessor[IO]]
+      when(textProcessor.preprocessing(TranslationFixtures.enLoc.content.value))
+        .thenReturn(IO.pure(TranslationFixtures.enLoc.content.value))
+      when(textProcessor.postprocessing(TranslationFixtures.enLoc.content.value, TranslationFixtures.deLoc.content.value))
+        .thenReturn(IO.pure(TranslationFixtures.deLoc.content.value))
+
       val createdArticleEventConsumer = mock[KafkaConsumer[IO, Unit, CreatedArticleEvent]]
       when(createdArticleEventConsumer.stream).thenReturn(fs2.Stream.empty)
 
@@ -103,6 +111,7 @@ class TranslationServiceSpec extends AsyncWordSpec with Matchers with MockitoSug
         .make[IO](
           repo,
           deeplClient,
+          textProcessor,
           createdArticleEventConsumer,
           translatedEventProducer,
           mock[Producer[IO, Unit, TranslateCommand]],
