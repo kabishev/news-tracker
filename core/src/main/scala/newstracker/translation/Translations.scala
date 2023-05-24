@@ -10,7 +10,10 @@ import newstracker.common.Controller
 import newstracker.translation.db.TranslationRepository
 import newstracker.translation.deepl.{DeeplClient, DeeplConfig}
 
-final class Translations[F[_]] private (val controller: Controller[F], val stream: fs2.Stream[F, Unit])
+final class Translations[F[_]] private (
+  val controller: Controller[F], 
+  val stream: fs2.Stream[F, Unit]
+)
 
 object Translations {
   def make[F[_]: Async: Logger](config: DeeplConfig, resources: ApplicationResources[F]): F[Translations[F]] =
