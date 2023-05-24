@@ -8,7 +8,7 @@ import newstracker.ApplicationResources
 import newstracker.article.db.ArticleRepository
 import newstracker.common.Controller
 
-final class Articles[F[_]] private (val controller: Controller[F], val kafka: ArticleKafka[F])
+final class Articles[F[_]] private (val controller: Controller[F], val stream: fs2.Stream[F, Unit])
 
 object Articles {
   def make[F[_]: Async](resources: ApplicationResources[F]): F[Articles[F]] =
@@ -17,5 +17,5 @@ object Articles {
       svc   <- ArticleService.make[F](repo, resources.createdArticleEventProducer)
       ctrl  <- ArticleController.make[F](svc)
       kafka <- ArticleKafka.make[F](svc, resources.createArticleCommandConsumer)
-    } yield new Articles[F](ctrl, kafka)
+    } yield new Articles[F](ctrl, kafka.stream)
 }

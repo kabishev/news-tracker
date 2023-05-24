@@ -24,8 +24,12 @@ object Application extends IOApp.Simple {
         translations <- Translations.make[IO](config.deepl, resources)
         http         <- Http.make[IO](health, ws, articles, translations)
         server = HttpServer[IO].ember(config.httpServer, http).use(_ => IO.never)
-        kafka  = articles.kafka
-        _ <- Stream.eval(server).concurrently(kafka.stream).concurrently(translations.stream).compile.drain
+        _ <- Stream
+          .eval(server)
+          .concurrently(articles.stream)
+          .concurrently(translations.stream)
+          .compile
+          .drain
       } yield ()
     }
   } yield ()
